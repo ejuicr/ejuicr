@@ -39,13 +39,15 @@ the UI and the REST API. MongoDB via Mongoose; sessions are JWTs in an
 
 ## Deployment
 
-- Production: `https://ejuicr.vercel.app` on Vercel Hobby (non-commercial
-  plan). The repo is `ejuicr/ejuicr` in the `ejuicr` organisation, branch
-  `master`, auto-deployed by Vercel. Jim is the sole organisation owner/operator.
+- Production: `https://ejuicr.jimfarrugia.com` on Mothership, retaining Atlas.
+  The repo is `ejuicr/ejuicr` in the `ejuicr` organisation, branch `master`;
+  Jim is the sole organisation owner/operator. CI publishes tested images; host
+  updates are manual/approved. Vercel is paused and its Git connection is removed.
 - For deployment, environment, or OAuth configuration changes, read the
   relevant sections of `docs/deployment.md` for environment mapping, setup,
   known quirks, and post-change verification.
-- Never commit `.env.local`; secrets live there and in Vercel env vars.
+- Never commit `.env.local` or runtime secrets. Production uses Mothership's private
+  `/srv/mothership/secrets/apps/ejuicr/runtime.env`; Vercel values are retained for recovery.
 
 ## Validation
 

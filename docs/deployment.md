@@ -4,17 +4,16 @@ Operational notes for the ejuicr deployment. Last updated: October 2026.
 
 ## Production
 
-- App: <https://ejuicr.vercel.app>
-- Host: Vercel Hobby plan (free, personal/non-commercial use only — the
-  donate link is a gray area for this clause).
+- App: <https://ejuicr.jimfarrugia.com>
+- Host: Mothership Compose/Traefik, accepted and cut over 2026-10-13. Production
+  MongoDB remains in Atlas; staging and local MongoDB hosting are separate follow-ups.
 - Repo: `github.com/ejuicr/ejuicr`, branch `master`, owned by the `ejuicr`
-  organisation; Jim is its sole owner/operator/contributor. Vercel's Git integration
-  deploys on push; verify its repository association after the rename.
+  organisation; Jim is its sole owner/operator/contributor. CI publishes tested images;
+  host deployment is manual and explicitly approved, not triggered by a source push.
 - Node.js is pinned to `22.x` via `engines` in `package.json`.
-- Hobby gets a **single function region**; set it in Project Settings →
-  Functions to the region nearest the Atlas cluster.
-- Preview deployments use rotating URLs, so OAuth cannot complete there.
-  Test auth on production.
+- Vercel's former production project is paused and Git-disconnected, not deleted.
+  `https://ejuicr.vercel.app` returns `503 DEPLOYMENT_PAUSED`, not a redirect. Its
+  project/credentials/callbacks are retained for separately approved recovery.
 
 ## Continuous integration
 
@@ -38,7 +37,7 @@ is:
 authenticated `gh`): it pushes the current commit to `ci/gated-<sha>`, waits
 for the check, pushes to `master`, and deletes the temporary branch.
 
-Vercel deploys the resulting `master` push.
+Vercel no longer deploys source pushes: its project Git connection is removed.
 
 The `Container image` job runs only on `master` pushes after `Validation`
 passes. It builds a linux/amd64 image, smoke-tests it without production services,
@@ -49,26 +48,30 @@ approved host deployment. CI has no server credentials and never deploys Mothers
 Set repository **variables**, not secrets, for the intended public build values:
 `NEXT_PUBLIC_DONATION_LINK`, `NEXT_PUBLIC_SUPPORT_EMAIL`, and
 `NEXT_PUBLIC_FEEDBACK_EMAIL`. Missing values hide the corresponding UI features.
-These settings must be compared with Vercel before cutover; runtime environment
+The initial values were compared with Vercel before cutover; runtime environment
 changes cannot replace values already compiled into the client bundle.
 
 The repository has been renamed from `ejuicr-next` to `ejuicr`. Image paths derive
 from `GITHUB_REPOSITORY`, so future publications target `ghcr.io/ejuicr/ejuicr`.
-The existing tested image was published under `ghcr.io/ejuicr/ejuicr-next`; the
-repository rename does not republish it under the new path. Verify package
+The original tested image was published under `ghcr.io/ejuicr/ejuicr-next`; current
+production uses a verified post-rename publication under the new path. Verify package
 visibility/access and source-repository association for each package before updating
 host image references. New GHCR packages default to private even for a public source
 repository; public image access avoids a host pull credential but requires an
 explicit package visibility change. Mothership's `image.env` owns the selected digest.
 
-## Prepared Mothership replacement
+## Mothership deployment
 
-Production hosting is selected to move to `https://ejuicr.jimfarrugia.com`, replacing
-Vercel while retaining production Atlas. This is not a completed cutover. Mothership's
-`apps/ejuicr/README.md` and work ticket `006-ejuicr-production-hosting.md` own the host
-configuration, approvals and apply/withdrawal procedure. Staging hosting and local
-MongoDB are deferred separate work; keep the Vercel deployment and callbacks until
-the replacement is verified and retirement is approved.
+Production moved to Mothership on 2026-10-13. Mothership's `apps/ejuicr/README.md`
+owns host configuration, updates and recovery; its resolved ticket
+`docs/work/tickets/resolved/006-ejuicr-production-hosting.md` retains scoped approval
+and acceptance evidence. Staging hosting and local MongoDB are deferred separate work.
+Keep the paused Vercel project and old callbacks until separately approved cleanup.
+
+Runtime credentials are in root-owned mode-0600
+`/srv/mothership/secrets/apps/ejuicr/runtime.env`, under root-owned mode-0700 app-secret
+directories. Jim confirms encrypted-vault copies. Never paste resolved environments,
+cookies or reset links into chat, logs or Git.
 
 The Dockerfile uses Node 22 and enables Next's standalone output with
 `NEXT_OUTPUT_STANDALONE=1`; ordinary Vercel/local builds keep `next start` support.
@@ -98,17 +101,19 @@ dummy OAuth credentials only at runtime and checks the resulting provider flags.
 | Environment       | Database             | `APP_URL`                     |
 | ----------------- | -------------------- | ----------------------------- |
 | Local development | `ejuicr-development` | `http://localhost:3000`       |
-| Vercel Production | `ejuicr-production`  | optional (see below)          |
-| Vercel Preview    | `ejuicr-staging`     | not needed (uses `VERCEL_URL`)|
+| Mothership Production | `ejuicr-production` | `https://ejuicr.jimfarrugia.com` |
+| Vercel Production (paused) | `ejuicr-production` | optional (see below) |
+| Vercel Preview (inactive) | `ejuicr-staging` | not needed (uses `VERCEL_URL`) |
 
 All three databases live in the same free Atlas M0 cluster
 (`ejuicrcluster.m6bqbpe.mongodb.net`). Free-tier characteristics that matter:
 512 MB storage, ~100 ops/sec, 500 connections, **no automated backups**, and
 the cluster auto-pauses after 30 days with zero connections.
 
-Atlas Network Access allows `0.0.0.0/0` because Vercel Hobby has no static
-egress IPs. The database user is scoped to the ejuicr databases (avoid admin
-users in Vercel).
+The recorded Atlas Network Access setting is `0.0.0.0/0`, originally for Vercel's
+non-static egress; hosting cutover did not change access or database privileges.
+Least-privilege credentials/access changes and credential rotation require a
+separate scope; no rotation was performed during this hosting cutover.
 
 `APP_URL` is optional on Vercel: `getAppUrl()` in `src/lib/url.ts` falls back
 to `VERCEL_PROJECT_PRODUCTION_URL` (stable production domain) and
@@ -135,8 +140,8 @@ Required for the features they enable:
 `APP_URL` is optional on Vercel (see above); set it to the externally
 reachable URL when hosting elsewhere.
 
-- Values are in the git-ignored `.env.local` locally and in Vercel's project
-  settings for deployments.
+- Local values are in git-ignored `.env.local`; production values are in Mothership's
+  private runtime file. Vercel settings are retained for recovery, not active deployment.
 - `NEXT_PUBLIC_*` values are inlined at build time — set them before the
   build or redeploy afterward.
 - Any Vercel env change needs a new deployment to take effect.
@@ -148,11 +153,12 @@ reachable URL when hosting elsewhere.
 
 ### Google
 
-- Client name **ejuicr-next** in the Google Cloud project **ejuicr-server**
-  (project number `916930895724`), under the Google account that owns the
+- Existing OAuth client in Google Cloud project number `916930895724`, under the
+  Google account that owns the
   `ejuicr-server`, `ejuicr-server staging`, and `ejuice-server development`
   projects.
 - Authorized redirect URIs:
+  - `https://ejuicr.jimfarrugia.com/api/auth/google/callback`
   - `https://ejuicr.vercel.app/api/auth/google/callback`
   - `http://localhost:3000/api/auth/google/callback`
 - Flow: OAuth 2.0 authorization code, implemented in
@@ -170,6 +176,7 @@ reachable URL when hosting elsewhere.
 - Identify the app in the X developer portal by matching its **API Key**
   with `TWITTER_CONSUMER_KEY`.
 - Callback URIs:
+  - `https://ejuicr.jimfarrugia.com/api/auth/twitter/callback`
   - `https://ejuicr.vercel.app/api/auth/twitter/callback`
   - `http://localhost:3000/api/auth/twitter/callback`
 - "Request email from users" must be enabled; the app rejects sign-in

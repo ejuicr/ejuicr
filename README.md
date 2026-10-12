@@ -172,7 +172,9 @@ server, so existing data continues to work.
 
 ### Vercel
 
-The app deploys to Vercel as a standard Next.js project.
+Vercel is a supported alternative, not the current production host. The former
+project is paused/Git-disconnected and retained for recovery; do not re-enable it
+without approval. General setup for a separately approved Vercel deployment:
 
 1. Import the GitHub repository into Vercel; the default build settings
    (`next build`) work as-is.
@@ -193,9 +195,9 @@ Node.js 22 for parity with local development.
 
 ### Self-hosting
 
-For the prepared container/Mothership deployment, see
-[deployment and operations](docs/deployment.md#prepared-mothership-replacement).
-Vercel remains the current production deployment until approved cutover.
+Production is hosted at <https://ejuicr.jimfarrugia.com> on Mothership with Atlas.
+For container deployment, updates and recovery, see
+[deployment and operations](docs/deployment.md#mothership-deployment).
 
 Build and run the production server:
 
