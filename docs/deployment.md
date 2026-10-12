@@ -89,6 +89,9 @@ database access, authenticated flows, TLS or reverse-proxy client-IP handling.
 The host uses a reviewed digest, non-root UID/GID 1000, read-only root filesystem,
 temporary writable `/tmp` and `/app/.next/cache`, and runtime-only credentials.
 Production cookies require HTTPS and `APP_URL` must be the selected hostname.
+The root layout uses request-time rendering so Google/X button availability reflects
+runtime credentials, not the secret-free build environment. Container smoke supplies
+dummy OAuth credentials only at runtime and checks the resulting provider flags.
 
 ## Environment mapping
 

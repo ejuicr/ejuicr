@@ -14,7 +14,11 @@ trap cleanup EXIT
 container=$(docker run -d --read-only --cap-drop ALL \
   --security-opt no-new-privileges:true \
   --tmpfs /tmp --tmpfs /app/.next/cache:uid=1000,gid=1000 \
-  -e JWT_SECRET=container-smoke-test-only "$image")
+  -e JWT_SECRET=container-smoke-test-only \
+  -e GOOGLE_CLIENT_ID=container-smoke-google-client \
+  -e GOOGLE_CLIENT_SECRET=container-smoke-google-secret \
+  -e TWITTER_CONSUMER_KEY=container-smoke-twitter-key \
+  -e TWITTER_CONSUMER_SECRET=container-smoke-twitter-secret "$image")
 
 docker exec -i "$container" node --input-type=module - <<'JS'
 import assert from 'node:assert/strict';
@@ -31,6 +35,8 @@ for (let attempt = 0; attempt < 30; attempt++) {
 }
 assert.equal(home?.status, 200, 'homepage must load');
 const html = await home.text();
+assert.match(html.replaceAll('\\"', '"'), /"providers":\{"google":true,"twitter":true\}/,
+  'OAuth availability must use credentials supplied at runtime');
 const asset = html.match(/(?:src|href)="([^" ]*\/_next\/static\/[^" ]+)"/)?.[1];
 assert.ok(asset, 'homepage must reference a static asset');
 assert.equal((await fetch(new URL(asset, origin))).status, 200, 'static asset must load');
