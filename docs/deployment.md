@@ -7,8 +7,9 @@ Operational notes for the ejuicr deployment. Last updated: October 2026.
 - App: <https://ejuicr.vercel.app>
 - Host: Vercel Hobby plan (free, personal/non-commercial use only — the
   donate link is a gray area for this clause).
-- Repo: `github.com/ejuicr/ejuicr-next`, branch `master`. Vercel deploys on
-  push automatically.
+- Repo: `github.com/ejuicr/ejuicr`, branch `master`, owned by the `ejuicr`
+  organisation; Jim is its sole owner/operator/contributor. Vercel's Git integration
+  deploys on push; verify its repository association after the rename.
 - Node.js is pinned to `22.x` via `engines` in `package.json`.
 - Hobby gets a **single function region**; set it in Project Settings →
   Functions to the region nearest the Atlas cluster.
@@ -39,13 +40,11 @@ for the check, pushes to `master`, and deletes the temporary branch.
 
 Vercel deploys the resulting `master` push.
 
-The prepared `Container image` job runs only on `master` pushes after `Validation`
+The `Container image` job runs only on `master` pushes after `Validation`
 passes. It builds a linux/amd64 image, smoke-tests it without production services,
 then publishes `ghcr.io/<owner>/<repo>:sha-<commit>` using the repository-scoped
 `GITHUB_TOKEN`. The workflow summary reports the digest to use for an explicitly
 approved host deployment. CI has no server credentials and never deploys Mothership.
-This job is repository-authored; publication is not claimed until the updated
-workflow is pushed and successfully runs.
 
 Set repository **variables**, not secrets, for the intended public build values:
 `NEXT_PUBLIC_DONATION_LINK`, `NEXT_PUBLIC_SUPPORT_EMAIL`, and
@@ -53,10 +52,14 @@ Set repository **variables**, not secrets, for the intended public build values:
 These settings must be compared with Vercel before cutover; runtime environment
 changes cannot replace values already compiled into the client bundle.
 
-Image paths derive from `GITHUB_REPOSITORY`, so renaming `ejuicr-next` to `ejuicr`
-can wait. A rename changes the path used by future publications; verify GHCR package
-access/association and update host image references then. It does not rename an
-existing package or change a running digest automatically.
+The repository has been renamed from `ejuicr-next` to `ejuicr`. Image paths derive
+from `GITHUB_REPOSITORY`, so future publications target `ghcr.io/ejuicr/ejuicr`.
+The existing tested image was published under `ghcr.io/ejuicr/ejuicr-next`; the
+repository rename does not republish it under the new path. Verify package
+visibility/access and source-repository association for each package before updating
+host image references. New GHCR packages default to private even for a public source
+repository; public image access avoids a host pull credential but requires an
+explicit package visibility change. Mothership's `image.env` owns the selected digest.
 
 ## Prepared Mothership replacement
 

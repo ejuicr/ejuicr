@@ -40,8 +40,8 @@ the UI and the REST API. MongoDB via Mongoose; sessions are JWTs in an
 ## Deployment
 
 - Production: `https://ejuicr.vercel.app` on Vercel Hobby (non-commercial
-  plan). The repo is `ejuicr/ejuicr-next`, branch `master`, auto-deployed by
-  Vercel.
+  plan). The repo is `ejuicr/ejuicr` in the `ejuicr` organisation, branch
+  `master`, auto-deployed by Vercel. Jim is the sole organisation owner/operator.
 - For deployment, environment, or OAuth configuration changes, read the
   relevant sections of `docs/deployment.md` for environment mapping, setup,
   known quirks, and post-change verification.
