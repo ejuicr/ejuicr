@@ -57,3 +57,42 @@ jobs:
         run: npx playwright install --with-deps firefox
       - name: Browser smoke tests
         run: npm run test:e2e
+
+  publish:
+    name: Container image
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Build image
+        env:
+          NEXT_PUBLIC_DONATION_LINK: ${{ vars.NEXT_PUBLIC_DONATION_LINK }}
+          NEXT_PUBLIC_SUPPORT_EMAIL: ${{ vars.NEXT_PUBLIC_SUPPORT_EMAIL }}
+          NEXT_PUBLIC_FEEDBACK_EMAIL: ${{ vars.NEXT_PUBLIC_FEEDBACK_EMAIL }}
+        run: |
+          set -euo pipefail
+          image="ghcr.io/${GITHUB_REPOSITORY,,}:sha-${GITHUB_SHA}"
+          echo "APP_IMAGE=$image" >> "$GITHUB_ENV"
+          docker build --platform linux/amd64 \
+            --build-arg NEXT_PUBLIC_DONATION_LINK \
+            --build-arg NEXT_PUBLIC_SUPPORT_EMAIL \
+            --build-arg NEXT_PUBLIC_FEEDBACK_EMAIL \
+            --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
+            --label "org.opencontainers.image.revision=$GITHUB_SHA" \
+            -t "$image" .
+      - name: Test image without production services
+        run: bash scripts/test-container.sh "$APP_IMAGE"
+      - name: Publish image (no deployment)
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          trap 'docker logout ghcr.io >/dev/null' EXIT
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker push "$APP_IMAGE"
+          digest=$(docker image inspect "$APP_IMAGE" --format '{{index .RepoDigests 0}}')
+          printf 'Published image digest: %s\n' "$digest" >> "$GITHUB_STEP_SUMMARY"

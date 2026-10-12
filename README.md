@@ -193,6 +193,10 @@ Node.js 22 for parity with local development.
 
 ### Self-hosting
 
+For the prepared container/Mothership deployment, see
+[deployment and operations](docs/deployment.md#prepared-mothership-replacement).
+Vercel remains the current production deployment until approved cutover.
+
 Build and run the production server:
 
 ```

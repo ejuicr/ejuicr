@@ -39,6 +39,54 @@ for the check, pushes to `master`, and deletes the temporary branch.
 
 Vercel deploys the resulting `master` push.
 
+The prepared `Container image` job runs only on `master` pushes after `Validation`
+passes. It builds a linux/amd64 image, smoke-tests it without production services,
+then publishes `ghcr.io/<owner>/<repo>:sha-<commit>` using the repository-scoped
+`GITHUB_TOKEN`. The workflow summary reports the digest to use for an explicitly
+approved host deployment. CI has no server credentials and never deploys Mothership.
+This job is repository-authored; publication is not claimed until the updated
+workflow is pushed and successfully runs.
+
+Set repository **variables**, not secrets, for the intended public build values:
+`NEXT_PUBLIC_DONATION_LINK`, `NEXT_PUBLIC_SUPPORT_EMAIL`, and
+`NEXT_PUBLIC_FEEDBACK_EMAIL`. Missing values hide the corresponding UI features.
+These settings must be compared with Vercel before cutover; runtime environment
+changes cannot replace values already compiled into the client bundle.
+
+Image paths derive from `GITHUB_REPOSITORY`, so renaming `ejuicr-next` to `ejuicr`
+can wait. A rename changes the path used by future publications; verify GHCR package
+access/association and update host image references then. It does not rename an
+existing package or change a running digest automatically.
+
+## Prepared Mothership replacement
+
+Production hosting is selected to move to `https://ejuicr.jimfarrugia.com`, replacing
+Vercel while retaining production Atlas. This is not a completed cutover. Mothership's
+`apps/ejuicr/README.md` and work ticket `006-ejuicr-production-hosting.md` own the host
+configuration, approvals and apply/withdrawal procedure. Staging hosting and local
+MongoDB are deferred separate work; keep the Vercel deployment and callbacks until
+the replacement is verified and retirement is approved.
+
+The Dockerfile uses Node 22 and enables Next's standalone output with
+`NEXT_OUTPUT_STANDALONE=1`; ordinary Vercel/local builds keep `next start` support.
+`.dockerignore` excludes
+environment files, local dependencies and build/test artifacts. Never pass runtime
+credentials as build arguments. An isolated local build and signed-out smoke test:
+
+```sh
+docker build --platform linux/amd64 -t ejuicr:local .
+bash scripts/test-container.sh ejuicr:local
+```
+
+Pass the three `NEXT_PUBLIC_*` build arguments when preserving the production UI
+settings. The smoke test starts only a disposable non-root container, without host
+ports or real database/OAuth/mail credentials, and removes that exact container.
+It checks the homepage, a static asset and signed-out API denial; it does not prove
+database access, authenticated flows, TLS or reverse-proxy client-IP handling.
+The host uses a reviewed digest, non-root UID/GID 1000, read-only root filesystem,
+temporary writable `/tmp` and `/app/.next/cache`, and runtime-only credentials.
+Production cookies require HTTPS and `APP_URL` must be the selected hostname.
+
 ## Environment mapping
 
 | Environment       | Database             | `APP_URL`                     |
