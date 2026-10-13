@@ -1,15 +1,15 @@
 name: CI
 
 on:
-  # Run on every branch push so a commit can pass Validation before it is
-  # pushed to the protected master branch (see docs/deployment.md).
+  # CI owns validation; after approved activation, normal master pushes deploy.
   push:
   pull_request:
     branches: [master]
 
 concurrency:
   group: ci-${{ github.event.pull_request.head.sha || github.sha }}
-  cancel-in-progress: true
+  # Never cancel a workflow which may already be rolling out production.
+  cancel-in-progress: false
 
 jobs:
   validate:
@@ -43,6 +43,8 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Offline deployment-client check
+        run: python3 scripts/test-deploy-mothership.py
       - name: Lint
         run: npm run lint
       - name: Typecheck
@@ -63,6 +65,8 @@ jobs:
     needs: validate
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.publication.outputs.digest }}
     permissions:
       contents: read
       packages: write
@@ -86,7 +90,8 @@ jobs:
             -t "$image" .
       - name: Test image without production services
         run: bash scripts/test-container.sh "$APP_IMAGE"
-      - name: Publish image (no deployment)
+      - name: Publish image
+        id: publication
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -95,4 +100,26 @@ jobs:
           printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
           docker push "$APP_IMAGE"
           digest=$(docker image inspect "$APP_IMAGE" --format '{{index .RepoDigests 0}}')
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
           printf 'Published image digest: %s\n' "$digest" >> "$GITHUB_STEP_SUMMARY"
+
+  deploy:
+    name: Production deployment
+    needs: publish
+    # Explicit activation stays off until ticket 007's scoped setup is accepted.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && vars.MOTHERSHIP_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    concurrency:
+      group: ejuicr-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Deploy exact tested digest
+        env:
+          DEPLOY_IMAGE: ${{ needs.publish.outputs.digest }}
+          DEPLOY_SSH_KEY: ${{ secrets.MOTHERSHIP_DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ vars.MOTHERSHIP_DEPLOY_KNOWN_HOSTS }}
+          DEPLOY_HOST: ${{ vars.MOTHERSHIP_DEPLOY_HOST }}
+        run: bash scripts/deploy-mothership.sh

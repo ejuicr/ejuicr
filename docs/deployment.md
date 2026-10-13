@@ -22,28 +22,45 @@ to `master`: lint, typecheck, the unit/component suite, the database-backed
 integration suite (MongoDB service container, test-only credentials), the
 production build, and the Firefox smoke suite. The job is named `Validation`.
 
-**Gating:** a repository branch ruleset (`master validation`) blocks branch
-deletion and force pushes and requires the `Validation` status check on
-`master`. The pull-request requirement is deliberately disabled. Rulesets
-enforce required checks on the branch itself, so a commit without a passing
-`Validation` run is rejected by `master`. Without pull requests, the workflow
-is:
+**Transition not yet activated:** the existing `master validation` ruleset still
+requires `Validation` before a commit reaches `master`. Until the approved ruleset
+change, use `scripts/push-gated.sh` (authenticated `gh`) to push a temporary branch,
+wait for validation, then push the same commit to `master`. Keep the helper until
+that transition is complete; it is not the intended long-term workflow.
 
-1. Push the commit to a branch (for example `ci/<change>`); CI runs there.
-2. Wait for `Validation` to pass.
-3. Push the same commit to `master`, or merge it through a pull request.
-
-`scripts/push-gated.sh` automates that sequence (it requires an
-authenticated `gh`): it pushes the current commit to `ci/gated-<sha>`, waits
-for the check, pushes to `master`, and deletes the temporary branch.
+After activation, develop/commit normally and run `git push origin master`.
+CI owns testing; no PR or local pre-push test gate is added. Only the required
+`Validation` restriction will be removed; force-push/deletion protections remain.
 
 Vercel no longer deploys source pushes: its project Git connection is removed.
 
 The `Container image` job runs only on `master` pushes after `Validation`
 passes. It builds a linux/amd64 image, smoke-tests it without production services,
 then publishes `ghcr.io/<owner>/<repo>:sha-<commit>` using the repository-scoped
-`GITHUB_TOKEN`. The workflow summary reports the digest to use for an explicitly
-approved host deployment. CI has no server credentials and never deploys Mothership.
+`GITHUB_TOKEN`. The workflow summary and job output report the exact published digest.
+
+The prepared `Production deployment` job depends on successful publication and runs
+only for `master` pushes with `MOTHERSHIP_DEPLOY_ENABLED=true`. It is not activated:
+the dedicated host identity/key and GitHub configuration passed setup-only,
+non-deploying checks on 2026-10-13, and the activation variable remains `false`.
+Workflow publication does not grant standing deployment authority. After separately
+approved activation, `scripts/deploy-mothership.sh` sends that digest and
+commit to a restricted Mothership SSH command with pinned host-key verification.
+The host serializes rollouts, skips superseded commits, verifies the image revision,
+waits for health/HTTPS checks and restores the prior image on failure. Workflow/job
+concurrency never cancels an in-progress rollout. No production environment bundle
+is supplied to GitHub; only an app-specific deployment key is required.
+
+Failed validation cannot publish or deploy, and production stays unchanged. A later
+passing commit deploys its complete snapshot, including earlier failed changes unless
+corrected/reverted. Failed deployment is reported by Actions even if rollback succeeds;
+host recovery never restores stale database data. Passing CI/HTTP checks do not prove
+all database/OAuth/mail flows. Host setup, selection records and recovery are owned by
+Mothership's `apps/ejuicr/README.md` automatic-deployment pilot section and ticket 007.
+
+Offline deployment checks: `shellcheck scripts/deploy-mothership.sh`,
+`python3 scripts/test-deploy-mothership.py`, and `actionlint .github/workflows/ci.yml`.
+The CI Validation job runs the SSH-client check without keys or network access.
 
 Set repository **variables**, not secrets, for the intended public build values:
 `NEXT_PUBLIC_DONATION_LINK`, `NEXT_PUBLIC_SUPPORT_EMAIL`, and
@@ -58,7 +75,8 @@ production uses a verified post-rename publication under the new path. Verify pa
 visibility/access and source-repository association for each package before updating
 host image references. New GHCR packages default to private even for a public source
 repository; public image access avoids a host pull credential but requires an
-explicit package visibility change. Mothership's `image.env` owns the selected digest.
+explicit package visibility change. Until activation, Mothership's `image.env` owns
+the selected digest; after activation its root-owned deployment state owns selections.
 
 ## Mothership deployment
 
