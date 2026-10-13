@@ -5,7 +5,7 @@ import FooterMenu from "./FooterMenu";
 export default function Footer() {
   return (
     <footer className="mt-8 bg-ink px-4 pt-8">
-      <div className="mx-auto flex max-w-[800px] flex-wrap items-start justify-between gap-4">
+      <div className="mx-auto flex max-w-[800px] flex-wrap items-end justify-between gap-4">
         <FooterMenu />
         <Image
           src="/logo-gray.svg"

@@ -108,7 +108,6 @@ describe("Calculator initialization", () => {
 
     expect(screen.getByTestId("targetNicStrengthInput")).toHaveValue(6);
     expect(screen.getByText(/Nic\. \(100mg, 100\/0\)/)).toBeInTheDocument();
-    expect(screen.queryByTestId("applyDefaultsBtn")).not.toBeInTheDocument();
   });
 
   it("initializes a fresh calculator from saved defaults", async () => {
@@ -140,7 +139,7 @@ describe("Calculator initialization", () => {
     expect(screen.queryByText(/Nic\./)).not.toBeInTheDocument();
   });
 
-  it("does not let saved defaults overwrite a restored draft", async () => {
+  it("automatically applies saved defaults over a restored draft without a button", async () => {
     localStorage.setItem("calculator", JSON.stringify(draft));
     const pending = deferred<unknown>();
     mocks.get.mockReturnValue(pending.promise);
@@ -154,9 +153,11 @@ describe("Calculator initialization", () => {
       pending.resolve(settings);
     });
 
-    expect(screen.getByTestId("targetAmountInput")).toHaveValue(12);
-    expect(screen.getByTestId("flavor1NameInput")).toHaveValue("Custom Flavor");
-    expect(screen.getByTestId("applyDefaultsBtn")).toBeInTheDocument();
+    expect(screen.getByTestId("targetAmountInput")).toHaveValue(50);
+    expect(screen.getByTestId("flavor1NameInput")).toHaveValue("Flavor 1");
+    expect(
+      screen.queryByRole("button", { name: "Apply Saved Defaults" }),
+    ).not.toBeInTheDocument();
   });
 
   it("preserves edits made while settings are loading", async () => {
@@ -175,7 +176,7 @@ describe("Calculator initialization", () => {
     expect(screen.getByTestId("targetAmountInput")).toHaveValue(45);
   });
 
-  it("applies saved defaults only when the user asks", async () => {
+  it("preserves a restored draft when the account has no saved settings", async () => {
     localStorage.setItem("calculator", JSON.stringify(draft));
     const pending = deferred<unknown>();
     mocks.get.mockReturnValue(pending.promise);
@@ -185,13 +186,29 @@ describe("Calculator initialization", () => {
       expect(screen.getByTestId("targetAmountInput")).toHaveValue(12),
     );
     await act(async () => {
-      pending.resolve(settings);
+      pending.resolve({});
     });
 
-    fireEvent.click(screen.getByTestId("applyDefaultsBtn"));
+    expect(screen.getByTestId("targetAmountInput")).toHaveValue(12);
+    expect(screen.getByTestId("flavor1NameInput")).toHaveValue("Custom Flavor");
+  });
 
-    expect(screen.getByTestId("targetAmountInput")).toHaveValue(50);
-    expect(screen.getByTestId("flavor1NameInput")).toHaveValue("Flavor 1");
+  it("loads updated defaults when returning to the calculator without a refresh", async () => {
+    mocks.get.mockResolvedValueOnce(settings);
+    const { unmount } = render(<Calculator />);
+    await waitFor(() =>
+      expect(screen.getByTestId("targetAmountInput")).toHaveValue(50),
+    );
+    fireEvent.change(screen.getByTestId("targetAmountInput"), {
+      target: { value: "45" },
+    });
+    unmount();
+
+    mocks.get.mockResolvedValueOnce({ ...settings, amount: 60 });
+    render(<Calculator />);
+    await waitFor(() =>
+      expect(screen.getByTestId("targetAmountInput")).toHaveValue(60),
+    );
   });
 
   it("applies saved flavor defaults to newly added flavors", async () => {
@@ -216,14 +233,13 @@ describe("Calculator initialization", () => {
     expect(screen.getByTestId("flavor2ConfigVgInput")).toHaveValue(20);
   });
 
-  it("does not fetch settings or offer defaults when signed out", async () => {
+  it("does not fetch settings when signed out", async () => {
     mocks.user = null;
 
     render(<Calculator />);
     await act(async () => {});
 
     expect(mocks.get).not.toHaveBeenCalled();
-    expect(screen.queryByTestId("applyDefaultsBtn")).not.toBeInTheDocument();
   });
 
   it("still loads defaults when auth refreshes with a new object for the same account", async () => {
@@ -249,7 +265,6 @@ describe("Calculator initialization", () => {
 
     expect(mocks.get).toHaveBeenCalledTimes(2);
     expect(screen.getByTestId("targetAmountInput")).toHaveValue(50);
-    expect(screen.getByTestId("applyDefaultsBtn")).toBeInTheDocument();
   });
 
   it("retries settings loading after a failure", async () => {
@@ -263,7 +278,6 @@ describe("Calculator initialization", () => {
     await act(async () => {
       failed.reject(new Error("network unavailable"));
     });
-    expect(screen.queryByTestId("applyDefaultsBtn")).not.toBeInTheDocument();
 
     mocks.user = { ...(mocks.user as Record<string, unknown>) };
     rerender(<Calculator />);
@@ -313,7 +327,6 @@ describe("Calculator initialization", () => {
     await waitFor(() =>
       expect(screen.getByTestId("targetAmountInput")).toHaveValue(50),
     );
-    expect(screen.getByTestId("applyDefaultsBtn")).toBeInTheDocument();
 
     // A flavor added while signed in inherits the account's flavor default.
     fireEvent.click(screen.getByTestId("flavorAddBtn"));
@@ -322,7 +335,6 @@ describe("Calculator initialization", () => {
     mocks.user = null;
     rerender(<Calculator />);
 
-    expect(screen.queryByTestId("applyDefaultsBtn")).not.toBeInTheDocument();
     // Active inputs survive logout...
     expect(screen.getByTestId("targetAmountInput")).toHaveValue(50);
     // ...but new flavors no longer inherit the previous account's defaults.
@@ -337,7 +349,6 @@ describe("Calculator initialization", () => {
     await waitFor(() =>
       expect(screen.getByTestId("targetAmountInput")).toHaveValue(50),
     );
-    expect(screen.getByTestId("applyDefaultsBtn")).toBeInTheDocument();
 
     mocks.user = {
       _id: "user-2",
@@ -350,14 +361,10 @@ describe("Calculator initialization", () => {
     mocks.get.mockReturnValueOnce(pending.promise);
     rerender(<Calculator />);
 
-    // The previous account's defaults are withheld while the new load runs.
-    expect(screen.queryByTestId("applyDefaultsBtn")).not.toBeInTheDocument();
-
     await act(async () => {
       pending.resolve({ ...settings, amount: 20 });
     });
     expect(screen.getByTestId("targetAmountInput")).toHaveValue(20);
-    expect(screen.getByTestId("applyDefaultsBtn")).toBeInTheDocument();
   });
 
   it("disables saving while the formula is not possible", async () => {

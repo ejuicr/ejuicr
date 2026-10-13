@@ -68,22 +68,15 @@ export function useCalculator(recipe?: Recipe) {
     recipe ? recipe.strength <= 0 : false,
   );
   const [units, setUnits] = useState<SettingsData["units"]>("both");
-  // Account whose saved settings are currently loaded. Comparing this with
-  // the signed-in account derives whether defaults are available, so logging
-  // out or switching accounts hides them without clearing state in an effect.
-  const [savedDefaultsFor, setSavedDefaultsFor] = useState<string | null>(null);
-
-  // Tracks whether the current values came from an existing draft or from
-  // edits made before settings loaded; either outranks saved defaults.
-  const hasDraftRef = useRef(false);
+  const [draftRestored, setDraftRestored] = useState(false);
+  // Edits made during this mount outrank a late settings response.
+  const hasEditsRef = useRef(false);
   const savedSettingsRef = useRef<{
     accountId: string;
     settings: SettingsData;
   } | null>(null);
 
   const accountId = user?._id ?? null;
-  const hasSavedDefaults =
-    accountId !== null && savedDefaultsFor === accountId;
 
   const { nicResults, flavors: flavorResults, pgRequired, vgRequired } =
     useMemo(
@@ -148,8 +141,6 @@ export function useCalculator(recipe?: Recipe) {
       if (!raw) return;
       const draft = parseCalculatorDraft(JSON.parse(raw));
       if (!draft) return;
-      // Any stored state is an existing draft and outranks user defaults.
-      hasDraftRef.current = true;
       if (draft.targetPg !== undefined) setTargetPg(draft.targetPg);
       if (draft.targetVg !== undefined) setTargetVg(draft.targetVg);
       if (draft.targetNicStrength !== undefined)
@@ -160,13 +151,14 @@ export function useCalculator(recipe?: Recipe) {
       if (draft.flavors !== undefined) setFlavors(draft.flavors);
     } catch (error) {
       console.error("Failed to restore calculator values.", error);
+    } finally {
+      setDraftRestored(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  // Apply saved defaults to the calculator. Used when a fresh calculator
-  // initializes and when the user deliberately applies defaults.
+  // Apply saved defaults automatically when the calculator opens.
   const applySettings = useCallback((settings: SettingsData) => {
     setZeroNicotineMode(settings.zeroNicotineMode);
     setUnits(settings.units);
@@ -192,7 +184,7 @@ export function useCalculator(recipe?: Recipe) {
   // Load the signed-in user's saved settings. The loaded account is recorded
   // only after a request succeeds, so a same-account auth refresh while the
   // request is pending starts a fresh request instead of permanently
-  // cancelling the only one. Defaults for an old account are never offered or
+  // cancelling the only one. Defaults for an old account are never inherited or
   // applied to another account because every use checks the account ID.
   const settingsAccount = useRef<string | null>(null);
   useEffect(() => {
@@ -215,7 +207,6 @@ export function useCalculator(recipe?: Recipe) {
           accountId: requestedAccountId,
           settings,
         };
-        setSavedDefaultsFor(requestedAccountId);
 
         // Display preferences always apply.
         setUnits(settings.units);
@@ -227,9 +218,9 @@ export function useCalculator(recipe?: Recipe) {
           return;
         }
 
-        // Initialization precedence: an existing draft, or edits made while
-        // settings were loading, outrank the user's defaults.
-        if (hasDraftRef.current) return;
+        // Saved defaults outrank a stored draft, but not edits made while
+        // settings were loading.
+        if (hasEditsRef.current) return;
 
         applySettings(settings);
       } catch (error) {
@@ -242,9 +233,10 @@ export function useCalculator(recipe?: Recipe) {
     };
   }, [user, recipe, applySettings]);
 
-  // Persist inputs only; results are always recalculated on load.
+  // Wait for restoration to commit before writing, including Strict Mode's
+  // repeated mount effects; initial defaults must never overwrite a draft.
   useEffect(() => {
-    if (recipe) return;
+    if (recipe || !draftRestored) return;
     try {
       localStorage.setItem(
         CALCULATOR_STORAGE_KEY,
@@ -264,6 +256,7 @@ export function useCalculator(recipe?: Recipe) {
     }
   }, [
     recipe,
+    draftRestored,
     targetPg,
     targetVg,
     targetNicStrength,
@@ -274,7 +267,7 @@ export function useCalculator(recipe?: Recipe) {
 
   const handleChangeTargetPgVg = useCallback(
     (value: string | number, ingredient: "pg" | "vg" = "pg") => {
-      hasDraftRef.current = true;
+      hasEditsRef.current = true;
       const validatedValue = validatePgVgValue(value);
       setTargetPg(ingredient === "vg" ? 100 - validatedValue : validatedValue);
       setTargetVg(ingredient === "vg" ? validatedValue : 100 - validatedValue);
@@ -284,20 +277,20 @@ export function useCalculator(recipe?: Recipe) {
 
   const handleChangeTargetNicStrength = useCallback(
     (value: string | number) => {
-      hasDraftRef.current = true;
+      hasEditsRef.current = true;
       setTargetNicStrength(roundToTwoDecimalPlaces(parseNumberInput(value)));
     },
     [],
   );
 
   const handleChangeTargetAmount = useCallback((value: string | number) => {
-    hasDraftRef.current = true;
+    hasEditsRef.current = true;
     setTargetAmount(roundToTwoDecimalPlaces(parseNumberInput(value)));
   }, []);
 
   const handleChangeNicConfigPgVg = useCallback(
     (value: string | number, ingredient: "pg" | "vg" = "pg") => {
-      hasDraftRef.current = true;
+      hasEditsRef.current = true;
       const validatedValue = validatePgVgValue(value);
       setNicConfig((current) => ({
         ...current,
@@ -310,7 +303,7 @@ export function useCalculator(recipe?: Recipe) {
 
   const handleChangeNicConfigStrength = useCallback(
     (value: string | number) => {
-      hasDraftRef.current = true;
+      hasEditsRef.current = true;
       const parsedValue = parseNumberInput(value);
       setNicConfig((current) => ({
         ...current,
@@ -321,7 +314,7 @@ export function useCalculator(recipe?: Recipe) {
   );
 
   const handleChangeFlavorName = useCallback((index: number, value: string) => {
-    hasDraftRef.current = true;
+    hasEditsRef.current = true;
     setFlavors((current) =>
       current.map((flavor, flavorIndex) =>
         flavorIndex === index ? { ...flavor, name: value } : flavor,
@@ -331,7 +324,7 @@ export function useCalculator(recipe?: Recipe) {
 
   const handleChangeFlavorPercentage = useCallback(
     (index: number, value: string | number) => {
-      hasDraftRef.current = true;
+      hasEditsRef.current = true;
       const roundedValue = clampPercentage(
         roundToTwoDecimalPlaces(parseNumberInput(value)),
       );
@@ -348,7 +341,7 @@ export function useCalculator(recipe?: Recipe) {
 
   const handleChangeFlavorPgVg = useCallback(
     (index: number, value: string | number, ingredient: "pg" | "vg" = "pg") => {
-      hasDraftRef.current = true;
+      hasEditsRef.current = true;
       const validatedValue = validatePgVgValue(value);
       setFlavors((current) =>
         current.map((flavor, flavorIndex) =>
@@ -368,14 +361,14 @@ export function useCalculator(recipe?: Recipe) {
   );
 
   const handleRemoveFlavor = useCallback((index: number) => {
-    hasDraftRef.current = true;
+    hasEditsRef.current = true;
     setFlavors((current) =>
       current.filter((_, flavorIndex) => flavorIndex !== index),
     );
   }, []);
 
   const handleAddFlavor = useCallback(() => {
-    hasDraftRef.current = true;
+    hasEditsRef.current = true;
     setFlavors((current) => {
       // Saved flavor defaults apply to every newly added flavor, but only
       // while the account they belong to is still signed in. Guests and
@@ -397,14 +390,6 @@ export function useCalculator(recipe?: Recipe) {
   // example a saved recipe opened while zero-nicotine defaults are enabled.
   const showNicotine = !zeroNicotineMode || targetNicStrength > 0;
 
-  // Deliberate action for replacing the current draft with saved defaults;
-  // settings loading must never do this implicitly.
-  const handleApplyDefaults = useCallback(() => {
-    const saved = savedSettingsRef.current;
-    if (!saved || saved.accountId !== accountId) return;
-    applySettings(saved.settings);
-  }, [accountId, applySettings]);
-
   return {
     targetPg,
     targetVg,
@@ -425,8 +410,6 @@ export function useCalculator(recipe?: Recipe) {
     vgInvalid,
     error,
     showNicotine,
-    hasSavedDefaults,
-    handleApplyDefaults,
     units,
     handleChangeTargetPgVg,
     handleChangeTargetNicStrength,

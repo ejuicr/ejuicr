@@ -218,7 +218,9 @@ Carrier ratios (target base, nicotine base, flavor base) must be finite,
 within 0–100, and add up to 100 within a 0.01 tolerance; the API rejects
 anything else, the draft parser drops the affected values, and calculator
 status marks impossible mixtures invalid so Save stays disabled. Storage
-reads and writes are failure-tolerant.
+reads and writes are failure-tolerant. Persistence waits for restoration to
+commit so initial defaults cannot overwrite a stored draft during mount,
+including development Strict Mode's repeated effects.
 
 **Consequences:** Drafts survive reloads without carrying stale derived state.
 Legacy unversioned drafts and derived fields from older formats are ignored
@@ -226,6 +228,9 @@ where invalid and migrated where possible. Legacy documents with
 non-normalized ratios load with an explicit error and cannot be saved until
 corrected, and non-finite results (for example from a corrupted target
 amount) are invalid rather than silently rendering `NaN` instructions.
+`src/components/calculator/__tests__/CalculatorStorage.test.tsx` verifies that
+guest nicotine strengths survive remounting in Strict Mode and that every
+storage write retains the restored values.
 
 ## ADR-012 — Calculator initialization precedence
 
@@ -234,20 +239,28 @@ amount) are invalid rather than silently rendering `NaN` instructions.
 **Context:** Loading the signed-in user's defaults replaced an active draft,
 and zero-nicotine defaults could hide active nicotine in a saved recipe.
 
-**Decision:** Initialization precedence is: an opened recipe, then an existing
-draft or active edits, then saved defaults. Defaults apply to a fresh
-calculator or through the explicit "Apply Saved Defaults" action. Newly added
-flavors inherit saved flavor defaults, and nicotine controls are never hidden
+**Decision:** Initialization precedence is: an opened recipe or active edits
+made while settings load, then saved defaults, then an existing draft. Saved
+defaults apply automatically whenever the calculator opens; there is no
+"Apply Saved Defaults" action. Returning from Settings loads the newly saved
+defaults without a browser refresh. Newly added flavors inherit saved flavor
+defaults, and nicotine controls are never hidden
 while `targetNicStrength > 0`. A settings request is recorded as loaded for an
 account only after it succeeds, so an auth refresh that replaces the user
 object while the request is pending retries instead of permanently cancelling
 it. Saved defaults are keyed to the account that loaded them; logging out or
-switching accounts stops offering and applying them (and stops inheriting
-flavor defaults) without replacing active inputs.
+switching accounts stops inheriting the old account's flavor defaults. Logout
+retains active inputs; another account's loaded defaults follow the same
+initialization precedence.
 
-**Consequences:** Saved defaults never silently replace an active draft, and
-displayed instructions always include every active ingredient. A late
-response for a previous account cannot apply to the current one.
+**Consequences:** Saved defaults replace a restored draft, but never an opened
+recipe or edits made during loading; displayed instructions always include
+every active ingredient. A late response for a previous account cannot apply
+to the current one. Component tests in
+`src/components/calculator/__tests__/CalculatorAuth.test.tsx` verify these
+precedence rules, settings reload on remount, and account isolation. Settings
+changed in another tab are not synchronized live; reopening the calculator
+loads them without polling.
 
 ## ADR-013 — Database-backed integration tests verify high-risk invariants
 
