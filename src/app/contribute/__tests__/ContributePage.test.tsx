@@ -25,11 +25,11 @@ describe("ContributePage", () => {
 
     expect(screen.getByRole("link", { name: "Github" })).toHaveAttribute(
       "href",
-      "https://github.com/ejuicr/ejuicr-next",
+      "https://github.com/ejuicr/ejuicr",
     );
     expect(screen.getByRole("link", { name: "issues page" })).toHaveAttribute(
       "href",
-      "https://github.com/ejuicr/ejuicr-next/issues",
+      "https://github.com/ejuicr/ejuicr/issues",
     );
   });
 

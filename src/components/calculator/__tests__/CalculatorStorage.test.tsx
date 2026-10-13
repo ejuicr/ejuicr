@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { StrictMode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -26,6 +27,33 @@ import Calculator from "../Calculator";
 describe("Calculator storage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it("preserves guest nicotine strengths on reload in development Strict Mode", () => {
+    const { unmount } = render(<StrictMode><Calculator /></StrictMode>);
+    fireEvent.change(screen.getByTestId("targetNicStrengthInput"), {
+      target: { value: "9" },
+    });
+    fireEvent.click(screen.getByTestId("nicConfigBtn"));
+    fireEvent.change(screen.getByTestId("nicConfigStrengthInput"), {
+      target: { value: "72" },
+    });
+    unmount();
+
+    const writes = vi.spyOn(Storage.prototype, "setItem");
+    render(<StrictMode><Calculator /></StrictMode>);
+
+    expect(screen.getByTestId("targetNicStrengthInput")).toHaveValue(9);
+    fireEvent.click(screen.getByTestId("nicConfigBtn"));
+    expect(screen.getByTestId("nicConfigStrengthInput")).toHaveValue(72);
+    expect(writes).toHaveBeenCalled();
+    for (const [key, value] of writes.mock.calls) {
+      if (key !== "calculator") continue;
+      expect(JSON.parse(value)).toMatchObject({
+        targetNicStrength: 9,
+        nicConfig: { strength: 72 },
+      });
+    }
   });
 
   it("ignores malformed stored values and keeps the defaults", () => {

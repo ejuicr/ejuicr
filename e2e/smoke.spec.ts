@@ -33,6 +33,29 @@ test.describe("calculator", () => {
 });
 
 test.describe("layout and accessibility", () => {
+  test("aligns the footer logo with the last navigation item on desktop and mobile", async ({ page }) => {
+    await page.goto("/");
+
+    for (const width of [1280, 375]) {
+      await page.setViewportSize({ width, height: 900 });
+      const footer = page.locator("footer");
+      await footer.scrollIntoViewIfNeeded();
+      const metrics = await footer.evaluate((element) => {
+        const contentRect = element.firstElementChild!.getBoundingClientRect();
+        const logoRect = element.querySelector("img")!.getBoundingClientRect();
+        const menuRect = element.querySelector("ul")!.getBoundingClientRect();
+        return {
+          rightGap: contentRect.right - logoRect.right,
+          bottomGap: menuRect.bottom - logoRect.bottom,
+          overflow: document.documentElement.scrollWidth > window.innerWidth,
+        };
+      });
+      expect(metrics.rightGap).toBeCloseTo(0, 0);
+      expect(metrics.bottomGap).toBeCloseTo(0, 0);
+      expect(metrics.overflow).toBe(false);
+    }
+  });
+
   test("uses the display font and a full-width content column", async ({
     page,
   }) => {
