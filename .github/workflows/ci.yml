@@ -37,6 +37,8 @@ jobs:
       MONGOMS_DISABLE_POSTINSTALL: "1"
     steps:
       - uses: actions/checkout@v7
+      - name: Ticket 007 intentional validation failure
+        run: exit 1
       - uses: actions/setup-node@v7
         with:
           node-version: 22
