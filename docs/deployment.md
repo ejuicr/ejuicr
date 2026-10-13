@@ -8,8 +8,9 @@ Operational notes for the ejuicr deployment. Last updated: October 2026.
 - Host: Mothership Compose/Traefik, accepted and cut over 2026-10-13. Production
   MongoDB remains in Atlas; staging and local MongoDB hosting are separate follow-ups.
 - Repo: `github.com/ejuicr/ejuicr`, branch `master`, owned by the `ejuicr`
-  organisation; Jim is its sole owner/operator/contributor. CI publishes tested images;
-  host deployment is manual and explicitly approved, not triggered by a source push.
+  organisation; Jim is its sole owner/operator/contributor. Ordinary successful
+  `master` pushes automatically deploy CI-tested images under ejuicr's standing
+  authorization. Host configuration, credentials and database changes remain separate.
 - Node.js is pinned to `22.x` via `engines` in `package.json`.
 - Vercel's former production project is paused and Git-disconnected, not deleted.
   `https://ejuicr.vercel.app` returns `503 DEPLOYMENT_PAUSED`, not a redirect. Its
@@ -22,15 +23,10 @@ to `master`: lint, typecheck, the unit/component suite, the database-backed
 integration suite (MongoDB service container, test-only credentials), the
 production build, and the Firefox smoke suite. The job is named `Validation`.
 
-**Transition not yet activated:** the existing `master validation` ruleset still
-requires `Validation` before a commit reaches `master`. Until the approved ruleset
-change, use `scripts/push-gated.sh` (authenticated `gh`) to push a temporary branch,
-wait for validation, then push the same commit to `master`. Keep the helper until
-that transition is complete; it is not the intended long-term workflow.
-
-After activation, develop/commit normally and run `git push origin master`.
-CI owns testing; no PR or local pre-push test gate is added. Only the required
-`Validation` restriction will be removed; force-push/deletion protections remain.
+Develop/commit normally and run `git push origin master`. CI owns testing; no PR
+or local pre-push test gate is required. The active `master validation` ruleset
+retains force-push/deletion protections but no longer requires a passing Validation
+check before a commit can reach master. The old gated push helper is retired.
 
 Vercel no longer deploys source pushes: its project Git connection is removed.
 
@@ -39,12 +35,9 @@ passes. It builds a linux/amd64 image, smoke-tests it without production service
 then publishes `ghcr.io/<owner>/<repo>:sha-<commit>` using the repository-scoped
 `GITHUB_TOKEN`. The workflow summary and job output report the exact published digest.
 
-The prepared `Production deployment` job depends on successful publication and runs
-only for `master` pushes with `MOTHERSHIP_DEPLOY_ENABLED=true`. It is not activated:
-the dedicated host identity/key and GitHub configuration passed setup-only,
-non-deploying checks on 2026-10-13, and the activation variable remains `false`.
-Workflow publication does not grant standing deployment authority. After separately
-approved activation, `scripts/deploy-mothership.sh` sends that digest and
+The `Production deployment` job depends on successful publication and runs only for
+`master` pushes with `MOTHERSHIP_DEPLOY_ENABLED=true`, enabled under app-specific
+owner approval on 2026-10-13. `scripts/deploy-mothership.sh` sends that digest and
 commit to a restricted Mothership SSH command with pinned host-key verification.
 The host serializes rollouts, skips superseded commits, verifies the image revision,
 waits for health/HTTPS checks and restores the prior image on failure. Workflow/job
@@ -56,7 +49,7 @@ passing commit deploys its complete snapshot, including earlier failed changes u
 corrected/reverted. Failed deployment is reported by Actions even if rollback succeeds;
 host recovery never restores stale database data. Passing CI/HTTP checks do not prove
 all database/OAuth/mail flows. Host setup, selection records and recovery are owned by
-Mothership's `apps/ejuicr/README.md` automatic-deployment pilot section and ticket 007.
+Mothership's `apps/ejuicr/README.md` automatic-deployment section and ticket 007.
 
 Offline deployment checks: `shellcheck scripts/deploy-mothership.sh`,
 `python3 scripts/test-deploy-mothership.py`, and `actionlint .github/workflows/ci.yml`.
@@ -75,8 +68,9 @@ production uses a verified post-rename publication under the new path. Verify pa
 visibility/access and source-repository association for each package before updating
 host image references. New GHCR packages default to private even for a public source
 repository; public image access avoids a host pull credential but requires an
-explicit package visibility change. Until activation, Mothership's `image.env` owns
-the selected digest; after activation its root-owned deployment state owns selections.
+explicit package visibility change. Mothership's root-owned deployment state owns
+the selected/previous digests; its checkout's `image.env` is the manual bootstrap
+selection, not the latest automatically deployed image.
 
 ## Mothership deployment
 

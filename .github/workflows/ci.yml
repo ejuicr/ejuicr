@@ -37,8 +37,6 @@ jobs:
       MONGOMS_DISABLE_POSTINSTALL: "1"
     steps:
       - uses: actions/checkout@v7
-      - name: Ticket 007 intentional validation failure
-        run: exit 1
       - uses: actions/setup-node@v7
         with:
           node-version: 22
@@ -108,7 +106,7 @@ jobs:
   deploy:
     name: Production deployment
     needs: publish
-    # Explicit activation stays off until ticket 007's scoped setup is accepted.
+    # App-specific standing authority can be withdrawn with this activation flag.
     if: github.event_name == 'push' && github.ref == 'refs/heads/master' && vars.MOTHERSHIP_DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
     permissions:

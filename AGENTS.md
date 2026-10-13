@@ -41,10 +41,10 @@ the UI and the REST API. MongoDB via Mongoose; sessions are JWTs in an
 
 - Production: `https://ejuicr.jimfarrugia.com` on Mothership, retaining Atlas.
   The repo is `ejuicr/ejuicr` in the `ejuicr` organisation, branch `master`;
-  Jim is the sole organisation owner/operator. CI publishes tested images; host
-  updates remain manual/approved until ticket 007's prepared automatic-deployment
-  pilot is explicitly activated. Thereafter normal master pushes deploy only after
-  CI validation/image publication; host/infrastructure changes still need approval.
+  Jim is the sole organisation owner/operator. Normal master pushes automatically
+  deploy only after successful CI validation/image smoke/publication under the
+  app's standing authorization. Host/infrastructure/credential/database changes
+  still need separately scoped approval; no local pre-push test gate is required.
   Vercel is paused and its Git connection is removed.
 - For deployment, environment, or OAuth configuration changes, read the
   relevant sections of `docs/deployment.md` for environment mapping, setup,
