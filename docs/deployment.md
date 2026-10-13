@@ -28,6 +28,13 @@ or local pre-push test gate is required. The active `master validation` ruleset
 retains force-push/deletion protections but no longer requires a passing Validation
 check before a commit can reach master. The old gated push helper is retired.
 
+Merging a PR into master follows the same pipeline: the merge produces a master
+push. A branch push or PR run validates only; it does not publish or deploy.
+After a master push, wait in **Actions → CI** for **Validation → Container image →
+Production deployment** to succeed. No manual host step is required. The deployed
+snapshot is served at <https://ejuicr.jimfarrugia.com>; Validation alone is not proof
+of deployment, and documentation-only master pushes also run the full pipeline.
+
 Vercel no longer deploys source pushes: its project Git connection is removed.
 
 The `Container image` job runs only on `master` pushes after `Validation`
@@ -44,12 +51,30 @@ waits for health/HTTPS checks and restores the prior image on failure. Workflow/
 concurrency never cancels an in-progress rollout. No production environment bundle
 is supplied to GitHub; only an app-specific deployment key is required.
 
-Failed validation cannot publish or deploy, and production stays unchanged. A later
-passing commit deploys its complete snapshot, including earlier failed changes unless
+Failed validation cannot publish or deploy, and failed publication skips deployment;
+production stays unchanged. A later passing commit deploys its complete snapshot,
+including earlier failed changes unless
 corrected/reverted. Failed deployment is reported by Actions even if rollback succeeds;
 host recovery never restores stale database data. Passing CI/HTTP checks do not prove
 all database/OAuth/mail flows. Host setup, selection records and recovery are owned by
-Mothership's `apps/ejuicr/README.md` automatic-deployment section and ticket 007.
+[Mothership's automatic-deployment procedure](https://github.com/Jimfarrugia/mothership/blob/master/apps/ejuicr/README.md#automatic-deployment)
+and [resolved ticket 007](https://github.com/Jimfarrugia/mothership/blob/master/docs/work/tickets/resolved/007-ejuicr-automatic-production-deployment.md).
+
+Supersession follows the current master commit, not CI completion order. If slow A
+finishes after B becomes master and deploys, A is skipped rather than replacing B.
+If B is current master but fails CI, A is still superseded; the prior successful
+production image remains selected. A skipped deploy can finish green with
+`Skipped superseded commit`, so check its result rather than assuming every green
+run replaced production. The host rechecks master under its deployment lock before
+pulling and again after the pull.
+
+To pause future automatic invocations, set `MOTHERSHIP_DEPLOY_ENABLED=false`;
+this does not revoke an already queued job's authority. Follow the host procedure
+for immediate withdrawal or recovery. Runtime credentials, database migrations and
+host command/Compose updates remain separately approved operations, not side effects
+of a normal source push or Mothership checkout sync. The dedicated deployment key's
+recovery copy is the owner-verified Bitwarden note
+`ejuicr deployment key (mothership)`, not the runtime environment bundle.
 
 Offline deployment checks: `shellcheck scripts/deploy-mothership.sh`,
 `python3 scripts/test-deploy-mothership.py`, and `actionlint .github/workflows/ci.yml`.

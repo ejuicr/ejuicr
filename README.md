@@ -111,7 +111,9 @@ MONGODB_TEST_URI=mongodb://127.0.0.1:27017 npm run test:integration
 CI (`.github/workflows/ci.yml`) runs all of the above with a MongoDB service
 container and test-only credentials. Normal `master` pushes automatically deploy
 the exact tested image to Mothership only after successful CI validation and image
-publication. See [CI and recovery](docs/deployment.md#continuous-integration).
+publication. Merging a PR into `master` has the same effect; wait for all three
+Actions jobs, including **Production deployment**, to succeed. Superseded commits
+are skipped. See [CI and recovery](docs/deployment.md#continuous-integration).
 
 ## Project structure
 
