@@ -46,7 +46,7 @@ export default function ContributePage() {
       <p>
         The source code for ejuicr is available on{" "}
         <a
-          href="https://github.com/ejuicr/ejuicr-next"
+          href="https://github.com/ejuicr/ejuicr"
           target="_blank"
           rel="noreferrer"
         >
@@ -58,7 +58,7 @@ export default function ContributePage() {
         If you&apos;d like to report a bug or formally suggest a new feature,
         please create a new issue on the{" "}
         <a
-          href="https://github.com/ejuicr/ejuicr-next/issues"
+          href="https://github.com/ejuicr/ejuicr/issues"
           target="_blank"
           rel="noreferrer"
         >
