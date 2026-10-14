@@ -6,7 +6,11 @@ Operational notes for the ejuicr deployment. Last updated: October 2026.
 
 - App: <https://ejuicr.jimfarrugia.com>
 - Host: Mothership Compose/Traefik, accepted and cut over 2026-10-13. Production
-  MongoDB remains in Atlas; staging and local MongoDB hosting are separate follow-ups.
+  MongoDB remains in Atlas according to recorded acceptance. Fresh local
+  Development/Production databases and verified recovery are selected in
+  [Mothership ticket 008](https://github.com/Jimfarrugia/mothership/blob/master/docs/work/tickets/008-ejuicr-local-mongodb-recovery.md),
+  not yet deployed. All current Atlas records are disposable; no data migration is
+  wanted. Staging deployment is removed from the plans (owner decision 2026-10-14).
 - Repo: `github.com/ejuicr/ejuicr`, branch `master`, owned by the `ejuicr`
   organisation; Jim is its sole owner/operator/contributor. Ordinary successful
   `master` pushes automatically deploy CI-tested images under ejuicr's standing
@@ -102,7 +106,14 @@ selection, not the latest automatically deployed image.
 Production moved to Mothership on 2026-10-13. Mothership's `apps/ejuicr/README.md`
 owns host configuration, updates and recovery; its resolved ticket
 `docs/work/tickets/resolved/006-ejuicr-production-hosting.md` retains scoped approval
-and acceptance evidence. Staging hosting and local MongoDB are deferred separate work.
+and acceptance evidence. Development runs on any workstation with its private env
+file; Production runs on Mothership. The selected local databases both run on
+Mothership, with workstation SSH-tunnel access to either and direct private Docker
+network access for the production app. Setup/verification is scoped together in
+[ticket 008](https://github.com/Jimfarrugia/mothership/blob/master/docs/work/tickets/008-ejuicr-local-mongodb-recovery.md);
+its [database procedure](https://github.com/Jimfarrugia/mothership/blob/master/apps/ejuicr/mongodb.md)
+owns setup/access details. No staging deployment remains planned; local setup and
+cutover are not yet accepted.
 Keep the paused Vercel project and old callbacks until separately approved cleanup.
 
 Runtime credentials are in root-owned mode-0600
