@@ -39,7 +39,9 @@ the UI and the REST API. MongoDB via Mongoose; sessions are JWTs in an
 
 ## Deployment
 
-- Production: `https://ejuicr.jimfarrugia.com` on Mothership, retaining Atlas.
+- Host-specific operations and access procedures belong in the operator's
+  infrastructure documentation, not this public repository. Development uses
+  database-scoped credentials; see `docs/deployment.md#local-development-database`.
   The repo is `ejuicr/ejuicr` in the `ejuicr` organisation, branch `master`;
   Jim is the sole organisation owner/operator. Normal master pushes automatically
   deploy only after successful CI validation/image smoke/publication under the
@@ -47,10 +49,10 @@ the UI and the REST API. MongoDB via Mongoose; sessions are JWTs in an
   still need separately scoped approval; no local pre-push test gate is required.
   Vercel is paused and its Git connection is removed.
 - For deployment, environment, or OAuth configuration changes, read the
-  relevant sections of `docs/deployment.md` for environment mapping, setup,
-  known quirks, and post-change verification.
-- Never commit `.env.local` or runtime secrets. Production uses Mothership's private
-  `/srv/mothership/secrets/apps/ejuicr/runtime.env`; Vercel values are retained for recovery.
+  relevant sections of `docs/deployment.md` for environment configuration,
+  container setup, OAuth/mail and post-change verification.
+- Never commit `.env.local`, runtime secrets or private host/vault details. Production
+  uses a private host runtime file; Vercel values are retained for scoped recovery.
 
 ## Validation
 

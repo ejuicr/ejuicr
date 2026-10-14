@@ -38,6 +38,11 @@ cp .env.example .env.local
 
 3. Start the development server:
 
+For an operator-hosted database, obtain workstation authorization and connection
+details from the operator; see [local database configuration](docs/deployment.md#local-development-database).
+An environment file alone does not establish connectivity. Ordinary development
+needs neither production nor database-admin credentials.
+
 ```
 npm run dev
 ```
@@ -110,8 +115,8 @@ MONGODB_TEST_URI=mongodb://127.0.0.1:27017 npm run test:integration
 
 CI (`.github/workflows/ci.yml`) runs all of the above with a MongoDB service
 container and test-only credentials. Normal `master` pushes automatically deploy
-the exact tested image to Mothership only after successful CI validation and image
-publication. Merging a PR into `master` has the same effect; wait for all three
+the exact tested image to the production host only after successful CI validation
+and image publication. Merging a PR into `master` has the same effect; wait for all three
 Actions jobs, including **Production deployment**, to succeed. Superseded commits
 are skipped. See [CI and recovery](docs/deployment.md#continuous-integration).
 
@@ -199,9 +204,9 @@ Node.js 22 for parity with local development.
 
 ### Self-hosting
 
-Production is hosted at <https://ejuicr.jimfarrugia.com> on Mothership with Atlas.
-For container deployment, updates and recovery, see
-[deployment and operations](docs/deployment.md#mothership-deployment).
+For container deployment and runtime configuration, see
+[deployment and configuration](docs/deployment.md#container-deployment).
+Host-specific access and recovery belong in the operator's infrastructure docs.
 
 Build and run the production server:
 
