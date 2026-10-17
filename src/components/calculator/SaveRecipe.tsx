@@ -19,13 +19,15 @@ import {
 export default function SaveRecipe({
   calculator,
   recipe,
+  onRenamed,
 }: {
   calculator: CalculatorController;
   recipe?: Recipe;
+  onRenamed?: (name: string) => void;
 }) {
   const { user, providers } = useAuth();
   const [showLoginForm, setShowLoginForm] = useState(false);
-  const [recipeTitle, setRecipeTitle] = useState("");
+  const [recipeTitle, setRecipeTitle] = useState(recipe?.name ?? "");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -44,7 +46,7 @@ export default function SaveRecipe({
     setSuccess("");
     setIsLoading(true);
 
-    if (!recipe && !recipeTitle.trim()) {
+    if (!recipeTitle.trim()) {
       setError("Recipe title must not be blank.");
       setIsLoading(false);
       return;
@@ -83,11 +85,12 @@ export default function SaveRecipe({
         setSuccess(`"${created.name}" has been saved to your recipes.`);
         localStorage.removeItem(CALCULATOR_STORAGE_KEY);
       } else {
-        const updated = await api.put<Recipe>(`/api/recipes/${recipe._id}`, {
-          ...newRecipe,
-          name: recipe.name,
-        });
+        const updated = await api.put<Recipe>(
+          `/api/recipes/${recipe._id}`,
+          newRecipe,
+        );
         setSuccess(`"${updated.name}" has been updated.`);
+        onRenamed?.(updated.name);
       }
     } catch (caughtError) {
       setError(
@@ -120,11 +123,8 @@ export default function SaveRecipe({
                   type="text"
                   aria-label="Recipe title"
                   placeholder="Recipe Title"
-                  value={(recipe && recipe.name) || recipeTitle}
-                  readOnly={Boolean(recipe)}
-                  onChange={(event) =>
-                    !recipe && setRecipeTitle(event.target.value)
-                  }
+                  value={recipeTitle}
+                  onChange={(event) => setRecipeTitle(event.target.value)}
                 />
               </InputBorder>
             </div>
