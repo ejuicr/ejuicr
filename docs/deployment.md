@@ -50,9 +50,13 @@ MONGODB_URI=mongodb://<development-user>:<url-encoded-password>@127.0.0.1:<local
 APP_URL=http://localhost:3000
 ```
 
-Use the authentication database supplied by the operator. Keep the tunnel open
-while running `npm run dev`; GUI tools can use the same local endpoint and scoped
-credential. Never expose the local tunnel to other machines. Shared development
+Use the authentication database supplied by the operator. For a loopback
+`MONGODB_URI`, `npm run dev` reuses a tunnel already listening on the URI's port,
+or opens one through the workstation's operator-provided `mothership` SSH alias
+and closes it when the dev server stops. Missing or invalid SSH access fails with
+an error instead of starting without database access. GUI tools can use the same
+local endpoint and scoped credential. Never expose the local tunnel to other
+machines. Shared development
 data is not disposable test data: coordinate changes and clean up only your named
 test records. Development credentials must not grant production access.
 
