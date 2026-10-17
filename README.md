@@ -1,11 +1,18 @@
 # ejuicr
 
-ejuicr is a convenient, easy-to-use e-juice calculator for creating and
-managing recipes. This repository is the Next.js rebuild that combines the
-former React front end (`ejuicr`) and Express API (`ejuicr-server`) into a
-single application.
+ejuicr is a simple ejuice calculator which also let's you create and
+manage your recipes.
+
+<p align="center">
+  <img src="docs/calculator.png" alt="ejuicr calculator showing the target ejuice and ingredients tables" width="400" />
+  <img src="docs/sidebar.png" alt="ejuicr navigation sidebar with account and site links" width="400" />
+</p>
 
 ## Tech stack
+
+This repository is the Next.js rebuild that combines the
+former React front end (`ejuicr`) and Express API (`ejuicr-server`) into a
+single application.
 
 - [Next.js](https://nextjs.org/) 16 (App Router, TypeScript, Turbopack)
 - [React](https://react.dev/) 19 and [Tailwind CSS](https://tailwindcss.com/) 4
@@ -51,20 +58,20 @@ Open the application at [http://localhost:3000](http://localhost:3000).
 
 ### Environment variables
 
-| Variable                     | Required | Description                                                        |
-| ---------------------------- | -------- | ------------------------------------------------------------------ |
-| `MONGODB_URI`                | Yes      | MongoDB connection string.                                         |
-| `JWT_SECRET`                 | Yes      | Secret used to sign session and password reset tokens.             |
+| Variable                     | Required | Description                                                                                                   |
+| ---------------------------- | -------- | ------------------------------------------------------------------------------------------------------------- |
+| `MONGODB_URI`                | Yes      | MongoDB connection string.                                                                                    |
+| `JWT_SECRET`                 | Yes      | Secret used to sign session and password reset tokens.                                                        |
 | `APP_URL`                    | No       | Public URL; recommended for OAuth callbacks and reset links. Falls back to Vercel URLs or the request origin. |
-| `GOOGLE_CLIENT_ID`           | No       | Enables Google sign-in when set with the secret.                   |
-| `GOOGLE_CLIENT_SECRET`       | No       | Google OAuth client secret.                                        |
-| `TWITTER_CONSUMER_KEY`       | No       | Enables Twitter sign-in when set with the secret.                  |
-| `TWITTER_CONSUMER_SECRET`    | No       | Twitter OAuth 1.0a consumer secret.                                |
-| `EMAIL_ADDRESS`              | No       | Gmail address used to send password reset emails.                  |
-| `EMAIL_PASSWORD`             | No       | Gmail app password for the address above.                          |
-| `NEXT_PUBLIC_DONATION_LINK`  | No       | Donation link on Contribute; the section is hidden when unset.     |
-| `NEXT_PUBLIC_SUPPORT_EMAIL`  | No       | Support address on Help; the email option is hidden when unset.    |
-| `NEXT_PUBLIC_FEEDBACK_EMAIL` | No       | Feedback address on Help and Contribute; hidden when unset.        |
+| `GOOGLE_CLIENT_ID`           | No       | Enables Google sign-in when set with the secret.                                                              |
+| `GOOGLE_CLIENT_SECRET`       | No       | Google OAuth client secret.                                                                                   |
+| `TWITTER_CONSUMER_KEY`       | No       | Enables Twitter sign-in when set with the secret.                                                             |
+| `TWITTER_CONSUMER_SECRET`    | No       | Twitter OAuth 1.0a consumer secret.                                                                           |
+| `EMAIL_ADDRESS`              | No       | Gmail address used to send password reset emails.                                                             |
+| `EMAIL_PASSWORD`             | No       | Gmail app password for the address above.                                                                     |
+| `NEXT_PUBLIC_DONATION_LINK`  | No       | Donation link on Contribute; the section is hidden when unset.                                                |
+| `NEXT_PUBLIC_SUPPORT_EMAIL`  | No       | Support address on Help; the email option is hidden when unset.                                               |
+| `NEXT_PUBLIC_FEEDBACK_EMAIL` | No       | Feedback address on Help and Contribute; hidden when unset.                                                   |
 
 Optional integrations degrade gracefully: Google and Twitter buttons are
 hidden when their credentials are missing, and missing support/donation
@@ -85,18 +92,18 @@ otherwise Twitter sign-in cannot create an account.
 
 ## Scripts
 
-| Command             | Description                              |
-| ------------------- | ---------------------------------------- |
-| `npm run dev`       | Start the development server.            |
-| `npm run build`     | Create a production build.               |
-| `npm start`         | Start the production server.             |
-| `npm run lint`      | Run ESLint.                              |
-| `npm run typecheck` | Run the TypeScript compiler.             |
-| `npm test`          | Run the test suite once.                 |
+| Command                    | Description                                                       |
+| -------------------------- | ----------------------------------------------------------------- |
+| `npm run dev`              | Start the development server.                                     |
+| `npm run build`            | Create a production build.                                        |
+| `npm start`                | Start the production server.                                      |
+| `npm run lint`             | Run ESLint.                                                       |
+| `npm run typecheck`        | Run the TypeScript compiler.                                      |
+| `npm test`                 | Run the test suite once.                                          |
 | `npm run test:integration` | Run database-backed integration tests (needs `MONGODB_TEST_URI`). |
-| `npm run test:watch`| Run tests in watch mode.                 |
-| `npm run test:e2e`  | Run the Playwright browser smoke suite.  |
-| `npm run test:e2e:install` | Install Firefox for the smoke suite. |
+| `npm run test:watch`       | Run tests in watch mode.                                          |
+| `npm run test:e2e`         | Run the Playwright browser smoke suite.                           |
+| `npm run test:e2e:install` | Install Firefox for the smoke suite.                              |
 
 The browser smoke suite runs against a production build, so run
 `npm run build && npm run test:e2e` (and `npm run test:e2e:install` once).
@@ -154,28 +161,28 @@ src/
 All endpoints live under `/api` and use the same JSON shapes as the old
 server, so existing data continues to work.
 
-| Method | Endpoint                        | Access  | Description                        |
-| ------ | ------------------------------- | ------- | ---------------------------------- |
-| POST   | `/api/user`                     | Public  | Register an account.               |
-| POST   | `/api/user/login`               | Public  | Log in with email and password.    |
-| POST   | `/api/user/logout`              | Public  | Clear the session cookie.          |
-| GET    | `/api/user/me`                  | Private | Get the current user.              |
-| POST   | `/api/user/change-password`     | Private | Change the current password.       |
-| POST   | `/api/user/set-password`        | Private | Set a password for OAuth accounts. |
-| POST   | `/api/user/reset-password`      | Public  | Send a reset password email.       |
-| POST   | `/api/user/reset-password/:token` | Public | Set a new password with a token. |
-| DELETE | `/api/user`                     | Private | Delete the account and recipes.    |
-| DELETE | `/api/user/google`              | Private | Unlink a Google account.           |
-| DELETE | `/api/user/twitter`             | Private | Unlink a Twitter account.          |
-| GET    | `/api/recipes`                  | Private | List recipe summaries (`?count=1`).|
-| POST   | `/api/recipes`                  | Private | Create a recipe.                   |
-| GET    | `/api/recipes/:id`              | Private | Get one recipe.                    |
-| PUT    | `/api/recipes/:id`              | Private | Update a recipe.                   |
-| DELETE | `/api/recipes/:id`              | Private | Delete a recipe.                   |
-| GET    | `/api/settings`                 | Private | Get the user's defaults.           |
-| POST   | `/api/settings`                 | Private | Save the user's defaults.          |
-| GET    | `/api/auth/google`              | Public  | Start Google sign-in.              |
-| GET    | `/api/auth/twitter`             | Public  | Start Twitter sign-in.             |
+| Method | Endpoint                          | Access  | Description                         |
+| ------ | --------------------------------- | ------- | ----------------------------------- |
+| POST   | `/api/user`                       | Public  | Register an account.                |
+| POST   | `/api/user/login`                 | Public  | Log in with email and password.     |
+| POST   | `/api/user/logout`                | Public  | Clear the session cookie.           |
+| GET    | `/api/user/me`                    | Private | Get the current user.               |
+| POST   | `/api/user/change-password`       | Private | Change the current password.        |
+| POST   | `/api/user/set-password`          | Private | Set a password for OAuth accounts.  |
+| POST   | `/api/user/reset-password`        | Public  | Send a reset password email.        |
+| POST   | `/api/user/reset-password/:token` | Public  | Set a new password with a token.    |
+| DELETE | `/api/user`                       | Private | Delete the account and recipes.     |
+| DELETE | `/api/user/google`                | Private | Unlink a Google account.            |
+| DELETE | `/api/user/twitter`               | Private | Unlink a Twitter account.           |
+| GET    | `/api/recipes`                    | Private | List recipe summaries (`?count=1`). |
+| POST   | `/api/recipes`                    | Private | Create a recipe.                    |
+| GET    | `/api/recipes/:id`                | Private | Get one recipe.                     |
+| PUT    | `/api/recipes/:id`                | Private | Update a recipe.                    |
+| DELETE | `/api/recipes/:id`                | Private | Delete a recipe.                    |
+| GET    | `/api/settings`                   | Private | Get the user's defaults.            |
+| POST   | `/api/settings`                   | Private | Save the user's defaults.           |
+| GET    | `/api/auth/google`                | Public  | Start Google sign-in.               |
+| GET    | `/api/auth/twitter`               | Public  | Start Twitter sign-in.              |
 
 ## Deployment
 
