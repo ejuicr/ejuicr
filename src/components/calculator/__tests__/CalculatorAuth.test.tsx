@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   get: vi.fn(),
+  put: vi.fn(),
   user: {
     _id: "user-1",
     email: "member@example.com",
@@ -24,7 +25,7 @@ vi.mock("@/components/providers/AuthProvider", () => ({
 }));
 
 vi.mock("@/lib/client-api", () => ({
-  api: { get: mocks.get, post: vi.fn(), put: vi.fn(), delete: vi.fn() },
+  api: { get: mocks.get, post: vi.fn(), put: mocks.put, delete: vi.fn() },
 }));
 
 import Calculator from "../Calculator";
@@ -383,5 +384,31 @@ describe("Calculator initialization", () => {
       target: { value: "100" },
     });
     expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+  });
+
+  it("renames a saved recipe from the editable title input", async () => {
+    mocks.get.mockResolvedValue(settings);
+    mocks.put.mockResolvedValue({ ...recipe, name: "Mango Blast" });
+
+    render(<Calculator recipe={recipe} />);
+    await act(async () => {});
+
+    expect(document.title).toBe("Mango Mix - ejuicr");
+
+    const titleInput = screen.getByRole("textbox", { name: "Recipe title" });
+    expect(titleInput).toHaveValue("Mango Mix");
+
+    fireEvent.change(titleInput, { target: { value: "Mango Blast" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    await act(async () => {});
+
+    expect(mocks.put).toHaveBeenCalledWith(
+      "/api/recipes/recipe-1",
+      expect.objectContaining({ name: "Mango Blast" }),
+    );
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "Mango Blast",
+    );
+    expect(document.title).toBe("Mango Blast - ejuicr");
   });
 });
