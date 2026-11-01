@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="A static, minimal interface study for ejuicr.">
+  <title>ejuicr · Minimal prototype</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="navigation.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <img src="../public/logo.svg" width="98" height="23" alt="ejuicr">
+      <nav aria-label="Main navigation">
+        <a href="index.html" class="current" aria-current="page">Calculator</a>
+        <a href="views.html#recipes">Saved recipes</a>
+        <a href="views.html#settings">Settings</a>
+      </nav>
+      <a class="account" href="views.html#account">My account <span aria-hidden="true">↗</span></a>
+    </div>
+  </header>
+
+  <main id="main">
+    <p class="demo-note"><span aria-hidden="true"></span> Visual demo <small>Fixed values · actions inactive</small></p>
+    <h1 id="calculator-heading" class="sr-only" tabindex="-1">Calculator</h1>
+    <div id="recipe-heading" class="page-heading" hidden><a href="views.html#recipes" class="back-link">← Saved recipes</a><h1 tabindex="-1">Strawberry &amp; cream</h1><p class="page-note">Last updated 1 November 2026</p></div>
+
+    <div class="workspace">
+      <section class="target" aria-labelledby="target-heading">
+        <div class="section-title"><h2 id="target-heading">Target ejuice</h2></div>
+
+        <div class="target-field">
+          <label for="amount">Amount</label>
+          <div class="stepper"><button disabled aria-label="Decrease amount">−</button><div class="value"><input id="amount" value="60" readonly><span>mL</span></div><button disabled aria-label="Increase amount">+</button></div>
+        </div>
+        <div class="target-field">
+          <label for="strength">Nicotine strength</label>
+          <div class="stepper"><button disabled aria-label="Decrease nicotine strength">−</button><div class="value"><input id="strength" value="3" readonly><span>mg/mL</span></div><button disabled aria-label="Increase nicotine strength">+</button></div>
+        </div>
+        <div class="target-field">
+          <span class="field-label">Base ratio</span>
+          <div class="ratio-fields"><label>PG <input value="30" readonly aria-label="Target PG percentage"><span>%</span></label><span class="ratio-slash">/</span><label>VG <input value="70" readonly aria-label="Target VG percentage"><span>%</span></label></div>
+          <div class="ratio-bar" aria-hidden="true"><span></span></div>
+        </div>
+
+        <details class="nicotine-config">
+          <summary><span>Nicotine base<small>100 mg/mL · 100% PG</small></span><span class="chevron" aria-hidden="true">⌄</span></summary>
+          <div class="config-fields"><label>Strength <span><input value="100" readonly aria-label="Nicotine base strength"> mg/mL</span></label><label>PG / VG <span><input value="100" readonly aria-label="Nicotine base PG percentage"> / <input value="0" readonly aria-label="Nicotine base VG percentage"></span></label></div>
+        </details>
+      </section>
+
+      <section class="ingredients" aria-labelledby="ingredients-heading">
+        <div class="section-title"><h2 id="ingredients-heading">Ingredients</h2></div>
+        <table>
+          <caption class="sr-only">Static example ingredient quantities for a 60 mL mix</caption>
+          <thead><tr><th scope="col">Ingredient</th><th scope="col">%</th><th scope="col">mL</th><th scope="col">g</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><span class="dot nicotine"></span>Nicotine<small>100 mg/mL · PG base</small></th><td>3</td><td>1.80</td><td>1.87</td></tr>
+            <tr><th scope="row"><span class="dot pg"></span>PG<small>Propylene glycol</small></th><td>17</td><td>10.20</td><td>10.57</td></tr>
+            <tr><th scope="row"><span class="dot vg"></span>VG<small>Vegetable glycerin</small></th><td>70</td><td>42.00</td><td>52.97</td></tr>
+            <tr class="flavor-row"><th scope="row"><span class="dot strawberry"></span>Strawberry<small>Flavor · 100% PG</small></th><td><input readonly value="7" aria-label="Strawberry percentage"></td><td>4.20</td><td>4.35</td></tr>
+            <tr class="flavor-row"><th scope="row"><span class="dot vanilla"></span>Vanilla cream<small>Flavor · 100% PG</small></th><td><input readonly value="3" aria-label="Vanilla cream percentage"></td><td>1.80</td><td>1.87</td></tr>
+          </tbody>
+        </table>
+        <button class="add-flavor" disabled><span aria-hidden="true">+</span> Add flavor</button>
+        <p class="example-caption">Example recipe · measurements shown for layout only.</p>
+      </section>
+    </div>
+
+    <section class="save-recipe" aria-labelledby="save-heading">
+      <div><h2 id="save-heading">One to keep?</h2><p>Save your recipe for next time.</p></div>
+      <div class="save-controls"><label class="sr-only" for="recipe-name">Recipe name</label><input id="recipe-name" value="Strawberry & cream" readonly><button id="save-button" class="primary" disabled>Save recipe</button></div>
+    </section>
+
+    <footer><span>ejuicr</span><div><a href="views.html#about">About</a><a href="views.html#help">Help</a><a href="views.html#contribute">Contribute</a><a href="views.html#privacy">Privacy</a><a href="views.html#terms">Terms</a></div></footer>
+  </main>
+</body>
+</html>

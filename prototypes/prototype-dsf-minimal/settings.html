@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Settings — ejuicr prototype</title>
+    <link rel="icon" href="assets/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body data-page="settings">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header id="site-header"></header>
+
+    <main id="main" class="wrap">
+      <div class="page-head">
+        <div>
+          <h1>Settings</h1>
+          <p class="page-sub">Defaults for every new mix.</p>
+        </div>
+      </div>
+
+      <form class="settings-shell">
+        <section class="settings-section" aria-labelledby="appearance-title">
+          <div class="settings-head">
+            <h2 id="appearance-title">Appearance</h2>
+          </div>
+          <div class="form-row">
+            <label class="form-label" for="mixing-units">Mixing units</label>
+            <div class="form-control">
+              <select class="select" id="mixing-units">
+                <option selected>Both</option>
+                <option>Volume (mL)</option>
+                <option>Weight (g)</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-section" aria-labelledby="target-settings-title">
+          <div class="settings-head">
+            <h2 id="target-settings-title">Target ejuice</h2>
+            <p>Where every calculator starts.</p>
+          </div>
+          <div class="form-row">
+            <span class="form-label">Default base</span>
+            <div class="form-control">
+              <div class="ratio-inline">
+                <input
+                  class="input input-compact"
+                  type="number"
+                  value="30"
+                  min="0"
+                  max="100"
+                  aria-label="Default target PG percentage"
+                />
+                <span>PG</span>
+                <span class="ratio-sep">/</span>
+                <input
+                  class="input input-compact"
+                  type="number"
+                  value="70"
+                  min="0"
+                  max="100"
+                  aria-label="Default target VG percentage"
+                />
+                <span>VG</span>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="form-label" for="default-strength">Default strength</label>
+            <div class="form-control">
+              <input
+                class="input input-compact"
+                id="default-strength"
+                type="number"
+                value="6"
+                min="0"
+                aria-label="Default target nicotine strength"
+              />
+              <span>mg/mL</span>
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="form-label" for="default-amount">Default amount</label>
+            <div class="form-control">
+              <input
+                class="input input-compact"
+                id="default-amount"
+                type="number"
+                value="30"
+                min="0"
+                aria-label="Default target amount"
+              />
+              <span>mL</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-section" aria-labelledby="nicotine-settings-title">
+          <div class="settings-head">
+            <h2 id="nicotine-settings-title">Nicotine</h2>
+          </div>
+          <div class="form-row">
+            <span class="form-label" id="zero-nicotine-label">
+              Zero nicotine mode
+              <small>Removes nicotine options from the calculator.</small>
+            </span>
+            <div class="form-control">
+              <label class="switch">
+                <input type="checkbox" aria-labelledby="zero-nicotine-label" />
+                <span class="switch-track" aria-hidden="true"></span>
+                <span class="switch-state" aria-hidden="true"></span>
+              </label>
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="form-label" for="nicotine-strength">
+              Default strength
+              <small>Undiluted nicotine base.</small>
+            </label>
+            <div class="form-control">
+              <input
+                class="input input-compact"
+                id="nicotine-strength"
+                type="number"
+                value="100"
+                min="0"
+                aria-label="Default nicotine base strength"
+              />
+              <span>mg/mL</span>
+            </div>
+          </div>
+          <div class="form-row">
+            <span class="form-label">Default base</span>
+            <div class="form-control">
+              <div class="ratio-inline">
+                <input
+                  class="input input-compact"
+                  type="number"
+                  value="100"
+                  min="0"
+                  max="100"
+                  aria-label="Default nicotine base PG percentage"
+                />
+                <span>PG</span>
+                <span class="ratio-sep">/</span>
+                <input
+                  class="input input-compact"
+                  type="number"
+                  value="0"
+                  min="0"
+                  max="100"
+                  aria-label="Default nicotine base VG percentage"
+                />
+                <span>VG</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-section" aria-labelledby="flavor-settings-title">
+          <div class="settings-head">
+            <h2 id="flavor-settings-title">Flavors</h2>
+          </div>
+          <div class="form-row">
+            <span class="form-label">Default base</span>
+            <div class="form-control">
+              <div class="ratio-inline">
+                <input
+                  class="input input-compact"
+                  type="number"
+                  value="100"
+                  min="0"
+                  max="100"
+                  aria-label="Default flavor base PG percentage"
+                />
+                <span>PG</span>
+                <span class="ratio-sep">/</span>
+                <input
+                  class="input input-compact"
+                  type="number"
+                  value="0"
+                  min="0"
+                  max="100"
+                  aria-label="Default flavor base VG percentage"
+                />
+                <span>VG</span>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="form-label" for="flavor-percentage">Default percentage</label>
+            <div class="form-control">
+              <input
+                class="input input-compact"
+                id="flavor-percentage"
+                type="number"
+                value="5"
+                min="0"
+                aria-label="Default flavor percentage"
+              />
+              <span>%</span>
+            </div>
+          </div>
+        </section>
+
+        <div class="settings-actions">
+          <button class="btn btn-primary" type="submit">Save settings</button>
+        </div>
+      </form>
+    </main>
+
+    <footer id="site-footer"></footer>
+  </body>
+</html>

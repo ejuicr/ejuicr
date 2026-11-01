@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sign up — ejuicr prototype</title>
+    <link rel="icon" href="assets/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body data-page="signup" data-chrome="auth">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header id="site-header"></header>
+
+    <main id="main" class="auth-main">
+      <div class="auth-wrap">
+        <div class="auth-card">
+          <h1>Sign up</h1>
+          <p class="auth-sub">Create an account to save your recipes and defaults.</p>
+
+          <form class="auth-form">
+            <div class="auth-field">
+              <label for="signup-email">Email</label>
+              <input class="input" id="signup-email" type="email" autocomplete="email" />
+            </div>
+            <div class="auth-field">
+              <label for="signup-password">Password</label>
+              <input
+                class="input"
+                id="signup-password"
+                type="password"
+                autocomplete="new-password"
+              />
+            </div>
+            <div class="auth-field">
+              <label for="signup-confirm">Confirm password</label>
+              <input
+                class="input"
+                id="signup-confirm"
+                type="password"
+                autocomplete="new-password"
+              />
+            </div>
+            <button class="btn btn-primary btn-block" type="submit">Sign up</button>
+          </form>
+
+          <p class="auth-alt">
+            Already have an account? <a href="signin.html">Sign in instead</a>.
+          </p>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

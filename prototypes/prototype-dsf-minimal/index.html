@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Calculator — ejuicr prototype</title>
+    <link rel="icon" href="assets/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body data-page="calculator">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header id="site-header"></header>
+
+    <main id="main" class="wrap">
+      <div class="page-head">
+        <div>
+          <h1>Calculator</h1>
+          <p class="page-sub">30 mL at 6 mg/mL &middot; 30/70 PG/VG</p>
+        </div>
+        <div class="page-aside">
+          <span>Units</span>
+          <strong>mL + g</strong>
+        </div>
+      </div>
+
+      <div class="mix-layout">
+        <section class="panel" aria-labelledby="target-title">
+          <div class="panel-head">
+            <h2 class="panel-title" id="target-title">Target ejuice</h2>
+          </div>
+
+          <div class="target-body">
+            <div class="target-row is-primary">
+              <label class="field-label" for="target-amount">Amount</label>
+              <div class="number-control">
+                <button class="step-btn" type="button" aria-label="Decrease target amount">&minus;</button>
+                <div class="number-wrap">
+                  <input
+                    class="number-input"
+                    id="target-amount"
+                    type="number"
+                    value="30"
+                    min="0"
+                    inputmode="decimal"
+                  />
+                  <span class="number-unit">mL</span>
+                </div>
+                <button class="step-btn" type="button" aria-label="Increase target amount">+</button>
+              </div>
+            </div>
+
+            <div class="target-row">
+              <label class="field-label" for="target-strength">Strength</label>
+              <div class="number-control">
+                <button class="step-btn" type="button" aria-label="Decrease target strength">&minus;</button>
+                <div class="number-wrap">
+                  <input
+                    class="number-input"
+                    id="target-strength"
+                    type="number"
+                    value="6"
+                    min="0"
+                    inputmode="decimal"
+                  />
+                  <span class="number-unit">mg/mL</span>
+                </div>
+                <button class="step-btn" type="button" aria-label="Increase target strength">+</button>
+              </div>
+            </div>
+
+            <div class="target-row">
+              <span class="field-label" id="base-label">PG / VG</span>
+              <div class="ratio-stack">
+                <div class="ratio-control" role="group" aria-labelledby="base-label">
+                  <div class="number-wrap">
+                    <input
+                      class="number-input"
+                      type="number"
+                      value="30"
+                      min="0"
+                      max="100"
+                      aria-label="Target PG percentage"
+                      inputmode="decimal"
+                    />
+                    <span class="number-unit">PG</span>
+                  </div>
+                  <span class="ratio-sep">/</span>
+                  <div class="number-wrap">
+                    <input
+                      class="number-input"
+                      type="number"
+                      value="70"
+                      min="0"
+                      max="100"
+                      aria-label="Target VG percentage"
+                      inputmode="decimal"
+                    />
+                    <span class="number-unit">VG</span>
+                  </div>
+                </div>
+                <div
+                  class="ratio-bar"
+                  role="img"
+                  aria-label="30 percent PG, 70 percent VG"
+                >
+                  <span style="width: 30%"></span>
+                  <span style="width: 70%"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="ingredients-title">
+          <div class="panel-head">
+            <h2 class="panel-title" id="ingredients-title">Ingredients</h2>
+            <span class="panel-note">mL + g</span>
+          </div>
+
+          <div class="ingredients-body">
+            <div class="ing-head">
+              <span>Ingredient</span>
+              <span>%</span>
+              <span>mL</span>
+              <span>g</span>
+              <span aria-hidden="true"></span>
+            </div>
+
+            <div class="ing-row">
+              <div class="ing-name">
+                <span class="dot dot-nic" aria-hidden="true"></span>
+                <div>
+                  <span class="ing-name-text">Nicotine</span>
+                  <span class="ing-sub">100 mg/mL &middot; 100/0 PG/VG</span>
+                </div>
+              </div>
+              <div class="ing-values">
+                <span class="pct">6.0%</span>
+                <span class="val-ml">1.80</span>
+                <span class="val-g">2.22</span>
+              </div>
+              <div class="ing-actions">
+                <button
+                  class="icon-btn"
+                  type="button"
+                  data-icon="sliders"
+                  aria-label="Configure nicotine"
+                  title="Configure nicotine"
+                ></button>
+              </div>
+            </div>
+
+            <div class="ing-row">
+              <div class="ing-name">
+                <span class="dot dot-pg" aria-hidden="true"></span>
+                <span class="ing-name-text">PG</span>
+              </div>
+              <div class="ing-values">
+                <span class="pct">14%</span>
+                <span class="val-ml">4.20</span>
+                <span class="val-g">4.37</span>
+              </div>
+              <div class="ing-actions"></div>
+            </div>
+
+            <div class="ing-row">
+              <div class="ing-name">
+                <span class="dot dot-vg" aria-hidden="true"></span>
+                <span class="ing-name-text">VG</span>
+              </div>
+              <div class="ing-values">
+                <span class="pct">70%</span>
+                <span class="val-ml">21.00</span>
+                <span class="val-g">26.46</span>
+              </div>
+              <div class="ing-actions"></div>
+            </div>
+
+            <div class="ing-row">
+              <div class="ing-name">
+                <span class="dot dot-flavor" aria-hidden="true"></span>
+                <input
+                  class="ing-name-input"
+                  type="text"
+                  value="Strawberry"
+                  aria-label="Flavor 1 name"
+                />
+              </div>
+              <div class="ing-values">
+                <span class="pct flavor-pct">
+                  <input
+                    class="input-inline"
+                    type="number"
+                    value="6"
+                    min="0"
+                    max="100"
+                    aria-label="Strawberry percentage"
+                  />%
+                </span>
+                <span class="val-ml">1.80</span>
+                <span class="val-g">1.87</span>
+              </div>
+              <div class="ing-actions">
+                <button
+                  class="icon-btn"
+                  type="button"
+                  data-icon="sliders"
+                  aria-label="Configure Strawberry"
+                  title="Configure Strawberry"
+                ></button>
+                <button
+                  class="icon-btn danger"
+                  type="button"
+                  data-icon="trash"
+                  aria-label="Delete Strawberry"
+                  title="Delete Strawberry"
+                ></button>
+              </div>
+            </div>
+
+            <div class="ing-row">
+              <div class="ing-name">
+                <span class="dot dot-flavor" aria-hidden="true"></span>
+                <input
+                  class="ing-name-input"
+                  type="text"
+                  value="Vanilla Cream"
+                  aria-label="Flavor 2 name"
+                />
+              </div>
+              <div class="ing-values">
+                <span class="pct flavor-pct">
+                  <input
+                    class="input-inline"
+                    type="number"
+                    value="4"
+                    min="0"
+                    max="100"
+                    aria-label="Vanilla Cream percentage"
+                  />%
+                </span>
+                <span class="val-ml">1.20</span>
+                <span class="val-g">1.25</span>
+              </div>
+              <div class="ing-actions">
+                <button
+                  class="icon-btn"
+                  type="button"
+                  data-icon="sliders"
+                  aria-label="Configure Vanilla Cream"
+                  title="Configure Vanilla Cream"
+                ></button>
+                <button
+                  class="icon-btn danger"
+                  type="button"
+                  data-icon="trash"
+                  aria-label="Delete Vanilla Cream"
+                  title="Delete Vanilla Cream"
+                ></button>
+              </div>
+            </div>
+
+            <button class="add-flavor" type="button" data-icon="plus">
+              <span>Add flavor</span>
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <section class="save-bar" aria-labelledby="save-title">
+        <div class="save-copy">
+          <h2 id="save-title">Save recipe</h2>
+          <p>Keep this mix in your recipes for next time.</p>
+        </div>
+        <form class="save-form">
+          <label class="sr-only" for="recipe-title">Recipe title</label>
+          <input
+            class="input"
+            id="recipe-title"
+            type="text"
+            placeholder="Recipe title"
+            autocomplete="off"
+          />
+          <button class="btn btn-primary" type="submit">Save recipe</button>
+        </form>
+      </section>
+    </main>
+
+    <footer id="site-footer"></footer>
+  </body>
+</html>

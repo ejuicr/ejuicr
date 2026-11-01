@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Recipes — ejuicr prototype</title>
+    <link rel="icon" href="assets/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body data-page="recipes">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header id="site-header"></header>
+
+    <main id="main" class="wrap">
+      <div class="page-head">
+        <div>
+          <h1>Recipes</h1>
+          <p class="page-sub">4 saved recipes</p>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="segmented" role="group" aria-label="Sort recipes">
+          <button type="button" aria-pressed="false">Title</button>
+          <button type="button" aria-pressed="true">Last updated</button>
+        </div>
+      </div>
+
+      <ul class="recipe-list">
+        <li class="recipe-row">
+          <a class="recipe-link" href="recipe.html">
+            <span class="recipe-name">Strawberry Cream</span>
+            <span class="recipe-date">28 Oct 2026</span>
+          </a>
+          <button
+            class="icon-btn danger"
+            type="button"
+            data-icon="trash"
+            data-dialog-open="delete-recipe"
+            data-name="Strawberry Cream"
+            aria-label="Delete Strawberry Cream"
+            title="Delete Strawberry Cream"
+          ></button>
+        </li>
+        <li class="recipe-row">
+          <a class="recipe-link" href="recipe.html">
+            <span class="recipe-name">Blueberry Custard</span>
+            <span class="recipe-date">21 Oct 2026</span>
+          </a>
+          <button
+            class="icon-btn danger"
+            type="button"
+            data-icon="trash"
+            data-dialog-open="delete-recipe"
+            data-name="Blueberry Custard"
+            aria-label="Delete Blueberry Custard"
+            title="Delete Blueberry Custard"
+          ></button>
+        </li>
+        <li class="recipe-row">
+          <a class="recipe-link" href="recipe.html">
+            <span class="recipe-name">Simple Menthol</span>
+            <span class="recipe-date">12 Oct 2026</span>
+          </a>
+          <button
+            class="icon-btn danger"
+            type="button"
+            data-icon="trash"
+            data-dialog-open="delete-recipe"
+            data-name="Simple Menthol"
+            aria-label="Delete Simple Menthol"
+            title="Delete Simple Menthol"
+          ></button>
+        </li>
+        <li class="recipe-row">
+          <a class="recipe-link" href="recipe.html">
+            <span class="recipe-name">Peach Tea</span>
+            <span class="recipe-date">03 Oct 2026</span>
+          </a>
+          <button
+            class="icon-btn danger"
+            type="button"
+            data-icon="trash"
+            data-dialog-open="delete-recipe"
+            data-name="Peach Tea"
+            aria-label="Delete Peach Tea"
+            title="Delete Peach Tea"
+          ></button>
+        </li>
+      </ul>
+
+      <dialog id="delete-recipe" aria-labelledby="delete-recipe-title">
+        <h2 class="dialog-title" id="delete-recipe-title">Delete recipe?</h2>
+        <p class="dialog-copy">
+          &ldquo;<strong data-dialog-name>Strawberry Cream</strong>&rdquo; will be
+          permanently removed from your saved recipes.
+        </p>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" type="button" data-dialog-close>Cancel</button>
+          <button class="btn btn-danger" type="button" data-dialog-close>Delete</button>
+        </div>
+      </dialog>
+    </main>
+
+    <footer id="site-footer"></footer>
+  </body>
+</html>
