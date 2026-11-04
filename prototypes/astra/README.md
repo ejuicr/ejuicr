@@ -3,7 +3,7 @@
 Throwaway UI study: which of three layouts best fits ejuicr's existing calculator and account flows?
 
 ```sh
-npm --prefix prototype-skill-astra run dev
+npm --prefix prototypes/astra run dev
 ```
 
 Open http://localhost:3103. Uses the repository's installed Next.js and React; no additional install needed.

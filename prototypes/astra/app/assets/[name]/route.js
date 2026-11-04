@@ -7,6 +7,6 @@ export async function GET(_request, { params }) {
   if (!["logo.svg", "google-logo.svg", "x-logo.svg"].includes(name)) {
     return new Response(null, { status: 404 });
   }
-  const data = await readFile(path.join(process.cwd(), "../public", name));
+  const data = await readFile(path.join(process.cwd(), "../../public", name));
   return new Response(data, { headers: { "Content-Type": "image/svg+xml" } });
 }

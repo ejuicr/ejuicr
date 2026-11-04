@@ -8,13 +8,13 @@ import { calculateResults, getCalculatorStatus } from "@/lib/calculator";
 import { formatMeasurement as fmt, validatePassword } from "@/lib/helpers";
 import {
   faFlask, faBookOpen, faSliders, faUser, faArrowRightFromBracket,
-  faPlus, faMinus, faTrashCan, faChevronLeft, faChevronRight,
-  faArrowRight, faXmark, faCircleQuestion, faArrowLeft,
+  faPlus, faMinus, faGear, faTrashCan, faChevronLeft, faChevronRight,
+  faArrowRight, faXmark, faArrowLeft,
 } from "@fortawesome/free-solid-svg-icons";
 
 const variants = { A: "Workbench", B: "Worksheet", C: "Split" };
 const icons = { calculator: faFlask, recipes: faBookOpen, settings: faSliders, myaccount: faUser };
-const navigation = { calculator: "Calculator", recipes: "Saved recipes", settings: "Settings", myaccount: "My account" };
+const navigation = { calculator: "Calculator", recipes: "Recipes", settings: "Settings", myaccount: "Account" };
 const documents = { about: "About", help: "Help", contribute: "Contribute", "terms-of-service": "Terms", "privacy-policy": "Privacy" };
 const demoInput = {
   targetPg: 30, targetVg: 70, targetAmount: 60, targetNicStrength: 3,
@@ -66,20 +66,20 @@ function NumberField({ label, value, onChange, unit, step = 1, max = 1000, min =
   </label>;
 }
 
-function Ratio({ label, pg, onChange }) {
+function Ratio({ label, ariaLabel = label, pg, onChange }) {
   return <fieldset className="ratio-field"><legend>{label}</legend><div className="ratio-inputs">
-    <label><span>PG</span><input aria-label={`${label} PG`} type="number" min="0" max="100" value={pg} onChange={(e) => onChange(Math.min(100, Math.max(0, Number(e.target.value))))} /><span>%</span></label>
+    <label><span>PG</span><input aria-label={`${ariaLabel} PG`} type="number" min="0" max="100" value={pg} onChange={(e) => onChange(Math.min(100, Math.max(0, Number(e.target.value))))} /><span>%</span></label>
     <span className="ratio-divider">/</span>
-    <label><span>VG</span><input aria-label={`${label} VG`} type="number" min="0" max="100" value={100 - pg} onChange={(e) => onChange(100 - Math.min(100, Math.max(0, Number(e.target.value))))} /><span>%</span></label>
+    <label><span>VG</span><input aria-label={`${ariaLabel} VG`} type="number" min="0" max="100" value={100 - pg} onChange={(e) => onChange(100 - Math.min(100, Math.max(0, Number(e.target.value))))} /><span>%</span></label>
   </div></fieldset>;
 }
 
 function Target({ input, setInput, showNicotine }) {
-  return <section className="panel target-panel"><div className="section-label"><h2>Target ejuice</h2></div>
+  return <section className="panel target-panel"><div className="section-label"><h2>Batch</h2></div>
     <div className="target-fields">
       <NumberField label="Amount" value={input.targetAmount} unit="mL" step={10} max={10000} onChange={(v) => setInput({ ...input, targetAmount: v })} />
-      <Ratio label="Base ratio" pg={input.targetPg} onChange={(v) => setInput({ ...input, targetPg: v, targetVg: 100 - v })} />
-      {showNicotine && <NumberField label="Nicotine strength" value={input.targetNicStrength} unit="mg/mL" onChange={(v) => setInput({ ...input, targetNicStrength: v })} />}
+      <Ratio label="Base" ariaLabel="Batch base" pg={input.targetPg} onChange={(v) => setInput({ ...input, targetPg: v, targetVg: 100 - v })} />
+      {showNicotine && <NumberField label="Nicotine Strength" value={input.targetNicStrength} unit="mg/mL" onChange={(v) => setInput({ ...input, targetNicStrength: v })} />}
     </div>
   </section>;
 }
@@ -89,38 +89,39 @@ function Ingredients({ input, setInput, showNicotine, defaults, separateNicotine
   const [nicotineExpanded, setNicotineExpanded] = useState(false);
   const updateFlavor = (index, update) => setInput({ ...input, flavors: input.flavors.map((flavor, i) => i === index ? { ...flavor, ...update } : flavor) });
   const nicotine = showNicotine && <section className={separateNicotine ? "panel nicotine-panel" : "nicotine-block"}>
-      <div className="section-label"><h2>Nicotine base</h2>{separateNicotine ? <div className="nicotine-summary">
+      <div className="section-label"><h2><span className="nicotine-title-full">Undiluted Nicotine</span><span className="nicotine-title-short">Undiluted Nic.</span></h2>{separateNicotine ? <div className="nicotine-summary">
         <span className="quiet">{[
           `${fmt(input.nicConfig.strength)}mg/mL`,
           ...(input.nicConfig.pg > 0 ? [`${fmt(input.nicConfig.pg)}% PG`] : []),
           ...(input.nicConfig.vg > 0 ? [`${fmt(input.nicConfig.vg)}% VG`] : []),
         ].join(" · ")}</span>
-        <button className="icon-button" aria-label={`${nicotineExpanded ? "Collapse" : "Expand"} nicotine base`} aria-expanded={nicotineExpanded} aria-controls="nicotine-base-controls" onClick={() => setNicotineExpanded(!nicotineExpanded)}><Icon icon={nicotineExpanded ? faMinus : faPlus} /></button>
+        <button className="icon-button" aria-label={`${nicotineExpanded ? "Collapse" : "Expand"} nicotine base`} aria-expanded={nicotineExpanded} aria-controls="nicotine-base-controls" onClick={() => setNicotineExpanded(!nicotineExpanded)}><Icon icon={faGear} /></button>
       </div> : <span className="quiet">Undiluted</span>}</div>
       <div className="nicotine-fields" id={separateNicotine ? "nicotine-base-controls" : undefined} hidden={separateNicotine && !nicotineExpanded}>
-        <NumberField label="Base strength" value={input.nicConfig.strength} unit="mg/mL" step={5} onChange={(strength) => setInput({ ...input, nicConfig: { ...input.nicConfig, strength } })} />
-        <Ratio label="Nicotine carrier" pg={input.nicConfig.pg} onChange={(pg) => setInput({ ...input, nicConfig: { ...input.nicConfig, pg, vg: 100 - pg } })} />
+        <NumberField label="Undiluted Strength" value={input.nicConfig.strength} unit="mg/mL" step={5} onChange={(strength) => setInput({ ...input, nicConfig: { ...input.nicConfig, strength } })} />
+        <Ratio label="Base" ariaLabel="Undiluted nicotine base" pg={input.nicConfig.pg} onChange={(pg) => setInput({ ...input, nicConfig: { ...input.nicConfig, pg, vg: 100 - pg } })} />
       </div>
     </section>;
   return <div className={separateNicotine ? "ingredients-stack" : undefined}>
     {separateNicotine && nicotine}
     <section className="panel ingredient-panel">
     {!separateNicotine && nicotine}
-    <div className="section-label flavor-heading"><h2>Flavors</h2><button className="text-button" onClick={() => {
-      setInput({ ...input, flavors: [...input.flavors, { name: `Flavor ${input.flavors.length + 1}`, percentage: defaults?.flavorPercentage ?? 0, pg: defaults?.flavorPg ?? 100, vg: 100 - (defaults?.flavorPg ?? 100) }] });
-    }}><Icon icon={faPlus} /> Add flavor</button></div>
+    <div className="section-label flavor-heading"><h2>Flavors</h2></div>
     <div className="flavor-list">
       {input.flavors.map((flavor, i) => <div className="flavor-item" key={i}>
         <div className="flavor-row">
           <label className="flavor-name"><span className="sr-only">Flavor {i + 1} name</span><input maxLength={60} value={flavor.name} placeholder="Flavor name" onChange={(e) => updateFlavor(i, { name: e.target.value })} /></label>
           <NumberField compact label={`Flavor ${i + 1} percentage`} value={flavor.percentage} unit="%" max={100} step={0.5} onChange={(percentage) => updateFlavor(i, { percentage })} />
-          <button className={`icon-button ${expanded === i ? "selected" : ""}`} aria-label={`Configure ${flavor.name || "flavor"} carrier`} aria-expanded={expanded === i} onClick={() => setExpanded(expanded === i ? null : i)}><Icon icon={faSliders} /></button>
+          <button className={`icon-button ${expanded === i ? "selected" : ""}`} aria-label={`Configure ${flavor.name || "flavor"} carrier`} aria-expanded={expanded === i} onClick={() => setExpanded(expanded === i ? null : i)}><Icon icon={faGear} /></button>
           <button className="icon-button remove" aria-label={`Remove ${flavor.name || "flavor"}`} onClick={() => { setInput({ ...input, flavors: input.flavors.filter((_, n) => i !== n) }); setExpanded(null); }}><Icon icon={faXmark} /></button>
         </div>
-        {expanded === i && <div className="flavor-config"><Ratio label={`${flavor.name} carrier`} pg={flavor.pg} onChange={(pg) => updateFlavor(i, { pg, vg: 100 - pg })} /></div>}
+        {expanded === i && <div className="flavor-config"><Ratio label="Base" ariaLabel={`Flavor ${i + 1} base`} pg={flavor.pg} onChange={(pg) => updateFlavor(i, { pg, vg: 100 - pg })} /></div>}
       </div>)}
       {!input.flavors.length && <p className="empty-inline">No flavors added. Add a flavor to include it in the calculation.</p>}
     </div>
+    <button className="add-flavor-button" onClick={() => {
+      setInput({ ...input, flavors: [...input.flavors, { name: `Flavor ${input.flavors.length + 1}`, percentage: defaults?.flavorPercentage ?? 0, pg: defaults?.flavorPg ?? 100, vg: 100 - (defaults?.flavorPg ?? 100) }] });
+    }}><Icon icon={faPlus} /> Add flavor</button>
   </section></div>;
 }
 
@@ -128,13 +129,13 @@ function Results({ input, units, showNicotine }) {
   const result = calculateResults(input);
   const status = getCalculatorStatus(input, result);
   const rows = [
-    ["Propylene glycol", status.pgPercentage, result.pgRequired, status.pgWeight, "cyan"],
-    ["Vegetable glycerin", status.vgPercentage, result.vgRequired, status.vgWeight, "purple"],
+    ["PG", status.pgPercentage, result.pgRequired, status.pgWeight, "cyan"],
+    ["VG", status.vgPercentage, result.vgRequired, status.vgWeight, "purple"],
     ...(showNicotine ? [["Nicotine", status.nicPercentage, result.nicResults.amount, result.nicResults.weight, "pink"]] : []),
     ...result.flavors.map((f) => [f.name || "Unnamed flavor", f.percentage, f.amount, f.weight, "yellow"]),
   ];
   return <section className="panel results-panel">
-    <div className="section-label"><h2>Mixing results</h2><span className="quiet">{fmt(input.targetAmount)} mL</span></div>
+    <div className="section-label"><h2>Your Mix</h2><span className="quiet">{fmt(input.targetAmount)} mL</span></div>
     {status.error && <div className="message error" role="alert">{status.error}</div>}
     <table className="results-table"><caption className="sr-only">Ingredient quantities. Every value includes its unit.</caption><tbody>
       {rows.map(([name, percent, ml, grams, color], i) => <tr key={i} className={ml < 0 ? "invalid-row" : ""}>
@@ -148,16 +149,16 @@ function Results({ input, units, showNicotine }) {
 }
 
 function SaveRow({ name, setName, user, save, editing, error, signIn }) {
-  return <div className="save-block"><form className="save-row" onSubmit={(e) => { e.preventDefault(); if (user) save(); else signIn(); }}>
+  return <section className="panel save-block"><div className="section-label"><h2>{editing ? "Save Changes" : "Save Recipe"}</h2></div><form className="save-row" onSubmit={(e) => { e.preventDefault(); if (user) save(); else signIn(); }}>
     <label><span className="sr-only">Recipe name</span><input aria-label="Recipe name" placeholder="Name your recipe" value={name} maxLength={60} onChange={(e) => setName(e.target.value)} /></label>
-    <button className="primary" type="submit" disabled={Boolean(error)}>{user ? editing ? "Save changes" : "Save recipe" : "Sign in to save"}<Icon icon={faArrowRight} /></button>
+    <button className="primary" type="submit" disabled={Boolean(error)}>Save</button>
   </form>
     {!user && <p className="save-hint">Sign in to save this recipe. Your inputs stay here.</p>}
-  </div>;
+  </section>;
 }
 
 export function VariantA({ target, ingredients, results, save }) {
-  return <div className="calculator-layout workbench"><div className="target-zone">{target}</div><div className="ingredients-zone">{ingredients}</div><div className="results-zone">{results}{save}</div></div>;
+  return <div className="calculator-layout workbench"><div className="inputs-zone">{target}{ingredients}</div><div className="results-zone">{results}</div>{save}</div>;
 }
 export function VariantB({ target, ingredients, results, save }) {
   return <div className="calculator-layout worksheet">{target}{ingredients}{results}{save}</div>;
@@ -170,29 +171,29 @@ function Settings({ saved, onSave }) {
   const [draft, setDraft] = useState(saved || initialSettings);
   const change = (key, value) => setDraft({ ...draft, [key]: value });
   return <form className="settings-form" onSubmit={(e) => { e.preventDefault(); onSave(draft); }}>
-    <h1 className="sr-only">Settings</h1>
-    <section className="settings-section"><div className="settings-description"><h2>Mixing units</h2><p>Choose how amounts appear in your results.</p></div><div className="settings-controls">
-      <label className="select-field"><span className="sr-only">Mixing units</span><select aria-label="Mixing units" value={draft.units} onChange={(e) => change("units", e.target.value)}><option value="both">Volume & weight · mL / g</option><option value="volume">Volume · mL</option><option value="weight">Weight · g</option></select></label>
+    <h1 className="recipe-heading">Calculator Defaults</h1>
+    <section className="settings-section"><div className="settings-description"><h2>Mixing Units</h2><p>Choose how amounts appear in your results.</p></div><div className="settings-controls">
+      <label className="select-field"><span className="sr-only">Mixing units</span><select aria-label="Mixing units" value={draft.units} onChange={(e) => change("units", e.target.value)}><option value="both">Volume & Weight · mL & g</option><option value="volume">Volume · mL</option><option value="weight">Weight · g</option></select></label>
     </div></section>
-    <section className="settings-section"><div className="settings-description"><h2>Target ejuice</h2><p>Defaults for opening the calculator.</p></div><div className="settings-controls">
-      <Ratio label="Default base ratio" pg={draft.pg} onChange={(v) => change("pg", v)} />
-      <NumberField label="Default amount" unit="mL" value={draft.amount} max={10000} step={10} onChange={(v) => change("amount", v)} />
-      <NumberField label="Default nicotine strength" unit="mg/mL" value={draft.strength} onChange={(v) => change("strength", v)} />
+    <section className="settings-section"><div className="settings-description"><h2>Batch</h2><p>Defaults for opening the calculator.</p></div><div className="settings-controls">
+      <Ratio label="Base" ariaLabel="Batch base" pg={draft.pg} onChange={(v) => change("pg", v)} />
+      <NumberField label="Amount" unit="mL" value={draft.amount} max={10000} step={10} onChange={(v) => change("amount", v)} />
+      <NumberField label="Nicotine Strength" unit="mg/mL" value={draft.strength} onChange={(v) => change("strength", v)} />
     </div></section>
     <section className="settings-section"><div className="settings-description"><h2>Nicotine</h2><p>The strength and carrier of your undiluted base.</p></div><div className="settings-controls">
       <label className="switch-row"><span><strong>Zero nicotine mode</strong><small>Hide nicotine controls for nicotine-free mixes.</small></span><input type="checkbox" role="switch" checked={draft.zero} onChange={(e) => change("zero", e.target.checked)} /><span className="switch-track" /></label>
-      <NumberField label="Default base strength" value={draft.nicStrength} unit="mg/mL" step={5} onChange={(v) => change("nicStrength", v)} />
-      <Ratio label="Default nicotine carrier" pg={draft.nicPg} onChange={(v) => change("nicPg", v)} />
+      <NumberField label="Undiluted Strength" value={draft.nicStrength} unit="mg/mL" step={5} onChange={(v) => change("nicStrength", v)} />
+      <Ratio label="Base" ariaLabel="Undiluted nicotine base" pg={draft.nicPg} onChange={(v) => change("nicPg", v)} />
     </div></section>
     <section className="settings-section"><div className="settings-description"><h2>Flavors</h2><p>Defaults for each flavor you add.</p></div><div className="settings-controls">
-      <Ratio label="Default flavor carrier" pg={draft.flavorPg} onChange={(v) => change("flavorPg", v)} />
-      <NumberField label="Default flavor percentage" value={draft.flavorPercentage} unit="%" max={100} step={0.5} onChange={(v) => change("flavorPercentage", v)} />
+      <Ratio label="Base" ariaLabel="Flavor base" pg={draft.flavorPg} onChange={(v) => change("flavorPg", v)} />
+      <NumberField label="Flavor Percentage" value={draft.flavorPercentage} unit="%" max={100} step={0.5} onChange={(v) => change("flavorPercentage", v)} />
     </div></section>
     <div className="form-actions"><button className="primary" type="submit">Save settings</button></div>
   </form>;
 }
 
-function PasswordForm({ current = false, onSave, label = "Change password" }) {
+function PasswordForm({ current = false, onSave, label = "Change Password" }) {
   const [error, setError] = useState("");
   return <form className="password-form" onSubmit={(e) => {
     e.preventDefault(); const data = new FormData(e.currentTarget);
@@ -204,7 +205,7 @@ function PasswordForm({ current = false, onSave, label = "Change password" }) {
     {current && <label>Current password<input required type="password" name="current" autoComplete="current-password" /></label>}
     <label>New password<input required type="password" name="password" autoComplete="new-password" /></label>
     <label>Confirm new password<input required type="password" name="confirm" autoComplete="new-password" /></label>
-    <p className="field-note">At least 6 characters, up to 72 bytes.</p>
+    <p className="field-note">At least 6 characters.</p>
     {error && <p className="message error" role="alert">{error}</p>}
     <button className="primary" type="submit">{label}</button>
   </form>;
@@ -231,15 +232,15 @@ function Account({ user, setUser, count, go, signOut, confirm, deleteAccount, sh
         {["google", "twitter"].filter((p) => user[p]).map((provider) => <div className="provider-row" key={provider}>
           <img src={`/assets/${provider === "google" ? "google" : "x"}-logo.svg`} width="22" height="22" alt="" />
           <div><strong>{provider === "google" ? "Google" : "X / Twitter"}</strong><p>{provider === "twitter" ? "Handle, display name, email, profile picture." : "Display name, email, profile picture."}</p></div>
-          <button className="text-button remove" onClick={() => confirm(!user.hasPassword && Number(user.google) + Number(user.twitter) < 2 ? {
+          <button className="danger-outline" onClick={() => confirm(!user.hasPassword && Number(user.google) + Number(user.twitter) < 2 ? {
             title: "Set a password first", text: "This is your only sign-in method. Set a password before unlinking this account.",
           } : { title: `Unlink ${provider === "google" ? "Google" : "X"}?`, text: "You will no longer be able to sign in with this linked account.", label: "Unlink", action: () => { setUser({ ...user, [provider]: false }); showToast(`${provider === "google" ? "Google" : "X"} account unlinked.`); } })}>Unlink</button>
         </div>)}
       </section>}
-      <section className="panel"><div className="section-label"><h2>{user.hasPassword ? "Change password" : "Set password"}</h2></div>
-        <PasswordForm current={user.hasPassword} label={user.hasPassword ? "Change password" : "Set password"} onSave={() => { setUser({ ...user, hasPassword: true }); showToast(user.hasPassword ? "Password changed." : "Password set. You can now sign in with email."); }} />
+      <section className="panel"><div className="section-label"><h2>{user.hasPassword ? "Change Password" : "Set Password"}</h2></div>
+        <PasswordForm current={user.hasPassword} label={user.hasPassword ? "Change Password" : "Set Password"} onSave={() => { setUser({ ...user, hasPassword: true }); showToast(user.hasPassword ? "Password changed." : "Password set. You can now sign in with email."); }} />
       </section>
-      <section className="panel delete-section"><div className="section-label"><h2>Delete account</h2></div><p>Permanently delete your account, personal data, saved recipes and settings. This cannot be undone.</p><button className="danger-outline" onClick={() => confirm({ title: "Delete your account?", text: "Your login credentials, profile information, recipes and settings will be permanently deleted. This cannot be undone.", label: "Delete account", action: deleteAccount })}>Delete account</button></section>
+      <section className="panel delete-section"><div className="section-label"><h2>Delete Account</h2></div><p>Permanently delete your account, personal data, saved recipes and settings. This cannot be undone.</p><button className="danger-outline" onClick={() => confirm({ title: "Delete your account?", text: "Your login credentials, profile information, recipes and settings will be permanently deleted. This cannot be undone.", label: "Delete Account", action: deleteAccount })}>Delete Account</button></section>
     </div>
   </div>;
 }
@@ -266,7 +267,7 @@ function Auth({ view, go, signIn, cancel }) {
       <form className="auth-form" onSubmit={submit}>
         <label>Email<input name="email" type="email" placeholder="you@example.com" autoComplete="email" required /></label>
         <label>Password<input name="password" type="password" autoComplete={view === "signup" ? "new-password" : "current-password"} required /></label>
-        {view === "signup" && <><label>Confirm password<input name="confirm" type="password" autoComplete="new-password" required /></label><p className="field-note">At least 6 characters, up to 72 bytes.</p></>}
+        {view === "signup" && <><label>Confirm password<input name="confirm" type="password" autoComplete="new-password" required /></label><p className="field-note">At least 6 characters.</p></>}
         {view === "signin" && <button type="button" className="text-button forgot" onClick={() => go("reset")}>Forgot password?</button>}
         {error && <p className="message error" role="alert">{error}</p>}
         <button className="primary" type="submit">{view === "signup" ? "Create account" : "Sign in"}<Icon icon={faArrowRight} /></button>
@@ -355,7 +356,6 @@ export default function Prototype({ privacy, terms }) {
     setToast({ id: ++toastId.current, text, type });
   }
   const [dialog, setDialog] = useState(null);
-  const [menu, setMenu] = useState(false);
   const view = ["guest", "invalid", "signedout", "recipe"].includes(rawView) ? "calculator" : rawView === "provider-account" ? "myaccount" : rawView;
   const protectedView = ["recipes", "empty", "loading", "load-error", "settings", "myaccount", "missing-recipe"].includes(view);
   const actualView = !user && protectedView ? "signin" : view;
@@ -364,7 +364,6 @@ export default function Prototype({ privacy, terms }) {
     const search = new URLSearchParams(params.toString());
     search.set("variant", variant); search.set("view", next);
     router.push(`/?${search}`, { scroll: false });
-    setMenu(false);
     window.scrollTo({ top: 0 });
   }
   function navigate(next) {
@@ -427,20 +426,18 @@ export default function Prototype({ privacy, terms }) {
   const variantComponent = variant === "A" ? <VariantA {...calculatorProps} /> : variant === "B" ? <VariantB {...calculatorProps} /> : <VariantC {...calculatorProps} />;
   const nav = <nav className="primary-nav" aria-label="Main navigation">{Object.entries(navigation).filter(([key]) => user || key === "calculator").map(([key, label]) => <button key={key} className={view === key || key === "recipes" && ["empty", "loading", "load-error"].includes(view) ? "active" : ""} aria-current={view === key ? "page" : undefined} onClick={() => navigate(key)}><Icon icon={icons[key]} /><span>{label}</span></button>)}</nav>;
 
-  return <div className={`prototype-app variant-${variant}`}>
+  return <div className={`prototype-app variant-${variant}${user ? "" : " signed-out"}`}>
     <a href="#main" className="skip-link">Skip to content</a>
     <header className="app-navigation">
       <button className="brand" aria-label="ejuicr calculator" onClick={() => navigate("calculator")}><img src="/assets/logo.svg" width="98" height="23" alt="ejuicr" /></button>
       {nav}
-      <div className="navigation-end"><button className="help-button icon-button" aria-label="Help" onClick={() => go("help")}><Icon icon={faCircleQuestion} /></button>
-        {user ? <div className="user-menu-wrap" onKeyDown={(e) => { if (e.key === "Escape") { setMenu(false); e.currentTarget.querySelector("button").focus(); } }}><button className="user-button" aria-expanded={menu} aria-label="Open account menu" onClick={() => setMenu(!menu)}><span className="user-avatar"><Icon icon={faUser} /></span><span className="user-label">{user.email.split("@")[0]}</span></button>
-          {menu && <div className="user-menu"><p>{user.email}</p><button onClick={() => go("myaccount")}>My account</button><button onClick={signOut}><Icon icon={faArrowRightFromBracket} />Sign out</button></div>}
+      <div className={variant === "A" ? "sidebar-bottom" : "navigation-end"}>
+        {user ? <div className="user-block"><button className="user-button" aria-label="View account" onClick={() => go("myaccount")}><span className="user-avatar"><Icon icon={faUser} /></span><span className="user-label"><span className="user-name">{user.email.split("@")[0]}</span><span className="user-mail">{user.email}</span></span></button>
         </div> : <button className="signin-button" onClick={() => go("signin")}>Sign in<Icon icon={faArrowRight} /></button>}
       </div>
-      {variant === "A" && <div className="sidebar-bottom"><button className="text-button" onClick={() => go("help")}><Icon icon={faCircleQuestion} />Help & support</button><div>{["about", "contribute"].map((key) => <button key={key} onClick={() => go(key)}>{documents[key]}</button>)}</div></div>}
     </header>
     <div className="main-column"><main id="main" tabIndex={-1}>
-      {actualView === "calculator" ? <><h1 className="sr-only">Ejuice calculator</h1>{variantComponent}</>
+      {actualView === "calculator" ? <>{editing ? <h1 className="recipe-heading">{recipes.find((recipe) => recipe.id === editing)?.name || name}</h1> : <h1 className="sr-only">Ejuice calculator</h1>}{variantComponent}</>
         : actualView === "settings" ? <Settings saved={settings} onSave={(value) => { setSettings(value); showToast("Settings saved. New batches will use these defaults."); }} />
         : actualView === "myaccount" ? <Account user={user} setUser={setUser} count={recipes.length} go={go} signOut={signOut} confirm={setDialog} showToast={showToast} deleteAccount={() => { setRecipes([]); setSettings(null); setUser(null); setEditing(null); showToast("Account deleted. Your local calculator still works."); go("calculator"); }} />
         : ["recipes", "empty", "loading", "load-error"].includes(actualView) ? <RecipeList recipes={recipes} view={actualView} open={openRecipe} confirm={setDialog} remove={(id) => { setRecipes(recipes.filter((r) => r.id !== id)); if (editing === id) setEditing(null); showToast("Recipe deleted."); }} go={navigate} />
