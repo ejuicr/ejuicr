@@ -82,7 +82,7 @@ export default function AuthDrawer({
           </IconButton>
         </div>
 
-        {view === "login" ? (
+        {open && (view === "login" ? (
           <Login
             onSignup={() => setView("signup")}
             onResetPassword={() => setView("reset")}
@@ -97,7 +97,7 @@ export default function AuthDrawer({
           <ResetPassword
             onSignIn={() => setView("login")}
           />
-        )}
+        ))}
       </div>
     </>
   );

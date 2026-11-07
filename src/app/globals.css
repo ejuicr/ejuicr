@@ -502,7 +502,7 @@ main:focus {
 
 .brand img {
   width: 98px;
-  height: 23px;
+  height: auto;
 }
 
 .primary-nav {
@@ -1111,6 +1111,7 @@ main:focus {
 }
 
 .results-table th {
+  overflow-wrap: anywhere;
   font-weight: 450;
   line-height: 1.5;
   text-align: left;

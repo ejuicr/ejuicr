@@ -79,6 +79,23 @@ describe("AuthDrawer", () => {
     expect(mocks.onClose).toHaveBeenCalledTimes(1);
   });
 
+  it("discards entered credentials when closed and reopened", () => {
+    const { rerender } = render(<AuthDrawer open onClose={mocks.onClose} />);
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "test@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "dummy-password" },
+    });
+
+    rerender(<AuthDrawer open={false} onClose={mocks.onClose} />);
+    expect(screen.queryByLabelText("Password")).not.toBeInTheDocument();
+
+    rerender(<AuthDrawer open onClose={mocks.onClose} />);
+    expect(screen.getByLabelText("Email")).toHaveValue("");
+    expect(screen.getByLabelText("Password")).toHaveValue("");
+  });
+
   it("omits the provider links and divider when no provider is configured", () => {
     mocks.providers = { google: false, twitter: false };
     render(<AuthDrawer open onClose={mocks.onClose} />);

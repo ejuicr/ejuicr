@@ -172,8 +172,11 @@ test.describe("calculator", () => {
 test.describe("layout and accessibility", () => {
   test("matches the Workbench responsive layout without overflow or an overlapping header", async ({ page }) => {
     await page.goto("/");
+    await page.getByTestId("flavor1NameInput").fill("W".repeat(60));
     for (const width of [1440, 1200, 800, 540, 539, 390, 320]) {
       await page.setViewportSize({ width, height: 1000 });
+      const logo = await page.locator(".brand img").boundingBox();
+      expect(logo!.height).toBeCloseTo(logo!.width * 23 / 98, 1);
       const metrics = await page.evaluate(() => {
         const rect = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
         const header = rect("#page-header"), inputs = rect(".inputs-zone");
@@ -250,6 +253,14 @@ test.describe("layout and accessibility", () => {
     const signInProviderHrefs = await drawer
       .locator(".provider-buttons a")
       .evaluateAll((links) => links.map((link) => link.getAttribute("href")));
+    await drawer.getByLabel("Email", { exact: true }).fill("test@example.com");
+    await drawer.getByLabel("Password", { exact: true }).fill("dummy-password");
+    await page.keyboard.press("Escape");
+    await expect(signIn).toBeFocused();
+    await expect(drawer.locator("input")).toHaveCount(0);
+    await signIn.click();
+    await expect(drawer.getByLabel("Email", { exact: true })).toHaveValue("");
+    await expect(drawer.getByLabel("Password", { exact: true })).toHaveValue("");
     await drawer.getByRole("button", { name: "Sign up" }).click();
     await expect(
       drawer.getByRole("heading", { name: "Create an account" }),
