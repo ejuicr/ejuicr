@@ -1,38 +1,53 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import { useFocusTrap } from "./useFocusTrap";
 
 /**
- * Modal confirmation dialog with a red accent border. The dialog traps focus,
+ * Modal confirmation dialog. The dialog traps focus,
  * closes on Escape or a backdrop click, and restores focus when it closes.
  */
 export default function ConfirmDialog({
-  label,
+  open,
+  title,
   children,
-  onCancel,
+  confirmLabel,
+  onConfirm,
+  onClose,
 }: {
-  label: string;
+  open: boolean;
+  title: string;
   children: ReactNode;
-  onCancel: () => void;
+  confirmLabel?: string;
+  onConfirm?: () => void;
+  onClose: () => void;
 }) {
   const dialogRef = useRef<HTMLDivElement>(null);
-  useFocusTrap(dialogRef, true);
+  const titleId = useId();
+  useFocusTrap(dialogRef, open);
 
   useEffect(() => {
+    if (!open) return;
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onCancel();
+      if (event.key === "Escape") onClose();
     };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onCancel]);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open, onClose]);
 
   return (
     <div
-      className="fixed inset-0 z-[99] min-h-full bg-black/75"
+      className="confirmation-backdrop"
+      hidden={!open}
+      inert={!open}
       onClick={(event) => {
         if (event.target === event.currentTarget) {
-          onCancel();
+          onClose();
         }
       }}
     >
@@ -40,12 +55,15 @@ export default function ConfirmDialog({
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-label={label}
+        aria-labelledby={titleId}
         tabIndex={-1}
-        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[3px] bg-brand-red p-[0.125em] outline-none"
+        className="panel confirmation-dialog"
       >
-        <div className="w-[75vw] max-w-[550px] rounded-[3px] bg-ink px-4 py-6 text-center">
-          {children}
+        <h2 id={titleId}>{title}</h2>
+        <div className="confirmation-copy">{children}</div>
+        <div className="confirmation-actions">
+          <button type="button" onClick={onClose}>{onConfirm ? "Cancel" : "Close"}</button>
+          {onConfirm && <button type="button" className="confirmation-danger" onClick={onConfirm}>{confirmLabel}</button>}
         </div>
       </div>
     </div>

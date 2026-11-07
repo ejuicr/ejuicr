@@ -6,6 +6,11 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/client-api", () => ({ api: { get: mocks.get } }));
+vi.mock("next/link", () => ({
+  default: ({ href, children }: { href: string; children: React.ReactNode }) => (
+    <a href={href}>{children}</a>
+  ),
+}));
 vi.mock("@/components/calculator/Calculator", () => ({
   default: ({ recipe }: { recipe?: { name: string } }) => (
     <div data-testid="calculator">{recipe?.name}</div>
@@ -84,5 +89,19 @@ describe("RecipeLoader", () => {
 
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(screen.getByTestId("calculator")).toHaveTextContent("Recipe B");
+  });
+
+  it("presents a missing recipe with a way back to saved recipes", async () => {
+    mocks.get.mockRejectedValue({ status: 404 });
+
+    render(<RecipeLoader id="missing" />);
+
+    expect(
+      await screen.findByRole("heading", { name: "Recipe not found" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Return to saved recipes" }),
+    ).toHaveAttribute("href", "/recipes");
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });

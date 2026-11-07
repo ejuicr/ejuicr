@@ -7,7 +7,12 @@ import AuthProvider from "@/components/providers/AuthProvider";
 import AppShell from "@/components/layout/AppShell";
 import { getGoogleCredentials } from "@/lib/oauth/google";
 import { getTwitterCredentials } from "@/lib/oauth/twitter";
+// Font Awesome's SVG sizing must be present in the initial HTML; its core
+// package otherwise injects this stylesheet only after hydration.
+import "@fortawesome/fontawesome-svg-core/styles.css";
 import "./globals.css";
+import "./workspace-pages.css";
+import "./account-auth.css";
 
 const bebasNeue = Bebas_Neue({
   weight: "400",

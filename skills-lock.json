@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "build-awwwards-quality-sites": {
+      "source": "MengTo/Skills",
+      "sourceType": "github",
+      "skillPath": "agent-skills/web-design/build-awwwards-quality-sites/SKILL.md",
+      "computedHash": "64017fdb07bf9b015ed25c4f286cde2238ab14b44e9a22ce2330167ee861f547"
+    },
+    "shadcn": {
+      "source": "shadcn-ui/ui",
+      "sourceType": "github",
+      "skillPath": "skills/shadcn/SKILL.md",
+      "computedHash": "b864a958765563321f485a96f4d59c0bb6539f4286ab6d8b8b66895b7ebd302d"
+    }
+  }
+}

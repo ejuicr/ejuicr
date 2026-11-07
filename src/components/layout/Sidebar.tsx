@@ -1,256 +1,98 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import clsx from "clsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faArrowLeft,
-  faClose,
-  faEnvelope,
+  faArrowRight,
+  faBookOpen,
+  faFlask,
+  faSliders,
+  faUser,
 } from "@fortawesome/free-solid-svg-icons";
-import clsx from "clsx";
-import Login from "@/components/auth/Login";
-import Signup from "@/components/auth/Signup";
-import ResetPassword from "@/components/auth/ResetPassword";
-import UserProfile from "@/components/account/UserProfile";
-import Button from "@/components/ui/Button";
-import { useFocusTrap } from "@/components/ui/useFocusTrap";
 import { useAuth } from "@/components/providers/AuthProvider";
-import FooterMenu from "./FooterMenu";
+import { useAuthDialog } from "@/components/auth/AuthDialogContext";
 
-type View = "main" | "loginMenu" | "login" | "signup" | "reset";
+const navigation = [
+  { href: "/", label: "Calculator", icon: faFlask },
+  { href: "/recipes", label: "Recipes", icon: faBookOpen },
+  { href: "/settings", label: "Settings", icon: faSliders },
+  { href: "/myaccount", label: "Account", icon: faUser },
+];
 
-export default function Sidebar({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
-  const [view, setView] = useState<View>("main");
-  const { user, providers, logout } = useAuth();
-  const router = useRouter();
-  const navRef = useRef<HTMLElement>(null);
+export default function Sidebar() {
+  const pathname = usePathname();
+  const { user } = useAuth();
+  const { openAuth } = useAuthDialog();
+  const profilePic = user?.googlePicture || user?.twitterPicture;
 
-  const handleClose = useCallback(() => {
-    setView("main");
-    onClose();
-  }, [onClose]);
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 
-  useFocusTrap(navRef, open);
-
-  useEffect(() => {
-    if (!open) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") handleClose();
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [open, handleClose]);
-
-  useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [open]);
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      // Local state is already cleared; still leave the account UI.
-      console.error(error);
-    }
-    handleClose();
-    router.push("/");
-    router.refresh();
-  };
+  const visibleNavigation = user
+    ? navigation
+    : navigation.filter((item) => item.href === "/");
 
   return (
-    <>
-      <div
-        aria-hidden="true"
-        onClick={handleClose}
-        className={clsx(
-          "sidebar-backdrop fixed inset-0 z-40 bg-black/60",
-          open ? "opacity-100" : "pointer-events-none opacity-0",
-        )}
-      />
-      <nav
-        ref={navRef}
-        aria-label="Main menu"
-        aria-hidden={!open}
-        inert={!open}
-        tabIndex={-1}
-        className={clsx(
-          "sidebar-panel fixed top-0 right-0 z-50 h-full w-[250px] overflow-y-auto bg-ink p-4 text-center",
-          open ? "translate-x-0" : "translate-x-full",
-        )}
-      >
-        <div className="flex justify-between text-right">
-          {view !== "main" && !user ? (
-            <Button
-              variant="ghost"
-              aria-label="Back"
-              onClick={() => setView("main")}
-              className="text-[1.35rem] text-brand-cyan hover:text-brand-pink"
-            >
-              <FontAwesomeIcon icon={faArrowLeft} />
-            </Button>
-          ) : (
-            <div />
-          )}
-          <Button
-            variant="ghost"
-            aria-label="Close menu"
-            onClick={handleClose}
-            className="text-[1.35rem] text-brand-cyan hover:text-brand-pink"
+    <header
+      id="page-header"
+      className={clsx("app-navigation", !user && "signed-out")}
+    >
+      <Link href="/" aria-label="ejuicr calculator" className="brand">
+        <Image
+          src="/logo.svg"
+          alt="ejuicr"
+          width={98}
+          height={23}
+          priority
+          className="h-auto"
+        />
+      </Link>
+
+      <nav className="primary-nav" aria-label="Main navigation">
+        {visibleNavigation.map(({ href, label, icon }) => (
+          <Link
+            key={href}
+            href={href}
+            aria-current={isActive(href) ? "page" : undefined}
+            className={clsx(isActive(href) && "active")}
           >
-            <FontAwesomeIcon icon={faClose} />
-          </Button>
-        </div>
-
-        {user ? (
-          <>
-            <Link
-              href="/"
-              onClick={handleClose}
-              className="mx-auto my-4 mb-8 block w-fit"
-              aria-label="ejuicr home"
-            >
-              <Image
-                src="/logo.svg"
-                alt="ejuicr logo"
-                width={98}
-                height={23}
-                className="h-auto"
-              />
-            </Link>
-            <UserProfile user={user} />
-            <p className="mb-6">
-              <Link href="/recipes" onClick={handleClose}>
-                Saved Recipes
-              </Link>
-            </p>
-            <p className="mb-6">
-              <Link href="/settings" onClick={handleClose}>
-                Settings
-              </Link>
-            </p>
-            <p className="mb-6">
-              <Link href="/myaccount" onClick={handleClose}>
-                My Account
-              </Link>
-            </p>
-            <p className="mb-6">
-              <Button variant="link" onClick={handleLogout}>
-                Logout
-              </Button>
-            </p>
-          </>
-        ) : view === "loginMenu" ? (
-          <>
-            <h2 className="mx-auto my-[0.5em] text-[2.25rem]">Login</h2>
-            <ul className="m-0 list-none p-0">
-              {providers.google && (
-                <li className="mb-6">
-                  <a
-                    href="/api/auth/google"
-                    className="btn btn-white h-auto w-[200px] whitespace-nowrap text-[0.9rem] leading-[normal]"
-                  >
-                    <Image
-                      src="/google-logo.svg"
-                      alt=""
-                      width={18}
-                      height={18}
-                      className="mr-2"
-                    />
-                    Sign in with Google
-                  </a>
-                </li>
-              )}
-              {providers.twitter && (
-                <li className="mb-6">
-                  <a
-                    href="/api/auth/twitter"
-                    className="btn btn-black h-auto w-[200px] whitespace-nowrap text-[0.9rem] leading-[normal]"
-                  >
-                    <Image
-                      src="/x-logo.svg"
-                      alt=""
-                      width={18}
-                      height={18}
-                      className="mr-2"
-                    />
-                    Sign in with X
-                  </a>
-                </li>
-              )}
-              <li className="mb-6">
-                <button
-                  type="button"
-                  className="h-auto w-[200px] whitespace-nowrap text-[0.9rem] leading-[normal]"
-                  onClick={() => setView("login")}
-                >
-                  <FontAwesomeIcon icon={faEnvelope} className="mr-2" />
-                  Sign in with Email
-                </button>
-              </li>
-              <li className="mb-6">
-                <button
-                  type="button"
-                  className="h-auto w-[200px] whitespace-nowrap text-[0.9rem] leading-[normal]"
-                  onClick={() => setView("signup")}
-                >
-                  <FontAwesomeIcon icon={faEnvelope} className="mr-2" />
-                  Sign up with Email
-                </button>
-              </li>
-            </ul>
-          </>
-        ) : view === "login" ? (
-          <Login
-            onCancel={() => setView("loginMenu")}
-            onSignup={() => setView("signup")}
-            onResetPassword={() => setView("reset")}
-            onSuccess={handleClose}
-          />
-        ) : view === "signup" ? (
-          <Signup
-            onCancel={() => setView("loginMenu")}
-            onLogin={() => setView("login")}
-            onSuccess={handleClose}
-          />
-        ) : view === "reset" ? (
-          <ResetPassword onCancel={() => setView("loginMenu")} />
-        ) : (
-          <>
-            <Link
-              href="/"
-              onClick={handleClose}
-              className="mx-auto my-4 mb-8 block w-fit"
-              aria-label="ejuicr home"
-            >
-              <Image
-                src="/logo.svg"
-                alt="ejuicr logo"
-                width={98}
-                height={23}
-                className="h-auto"
-              />
-            </Link>
-            <Link href="#" onClick={() => setView("loginMenu")}>
-              Login/Signup
-            </Link>
-          </>
-        )}
-
-        <hr className="my-8" />
-        <FooterMenu toggleMenu={handleClose} />
+            <FontAwesomeIcon icon={icon} />
+            <span>{label}</span>
+          </Link>
+        ))}
       </nav>
-    </>
+
+      <div className="sidebar-bottom">
+        {user ? (
+          <Link href="/myaccount" aria-label="View account" className="user-button">
+            <span className="user-avatar">
+              {profilePic ? (
+                // eslint-disable-next-line @next/next/no-img-element -- matches account avatars, including remote and data URLs
+                <img src={profilePic} alt="Your profile picture" referrerPolicy="no-referrer" />
+              ) : (
+                <FontAwesomeIcon icon={faUser} aria-hidden="true" />
+              )}
+            </span>
+            <span className="user-label">
+              <span className="user-name">{user.email.split("@")[0]}</span>
+              <span className="user-mail">{user.email}</span>
+            </span>
+          </Link>
+        ) : (
+          <button
+            type="button"
+            className="signin-button"
+            aria-haspopup="dialog"
+            onClick={openAuth}
+          >
+            Sign in
+            <FontAwesomeIcon icon={faArrowRight} />
+          </button>
+        )}
+      </div>
+    </header>
   );
 }

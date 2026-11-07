@@ -2,7 +2,7 @@ export const metadata = { title: "Terms of Service" };
 
 export default function TermsOfServicePage() {
   return (
-    <div>
+    <article className="information panel">
       <h1>Terms of Service</h1>
       <hr />
       <p>
@@ -37,6 +37,6 @@ export default function TermsOfServicePage() {
           Australia.
         </li>
       </ol>
-    </div>
+    </article>
   );
 }

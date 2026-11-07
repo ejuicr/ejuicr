@@ -1,16 +1,10 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSave, faToggleOn } from "@fortawesome/free-solid-svg-icons";
-import clsx from "clsx";
-import Button from "@/components/ui/Button";
-import InfoTooltip from "@/components/ui/InfoTooltip";
-import InputBorder from "@/components/ui/InputBorder";
-import { ErrorMessage, SuccessMessage } from "@/components/ui/Messages";
-import NumberControls from "@/components/ui/NumberControls";
-import PageHeading from "@/components/ui/PageHeading";
-import Spinner from "@/components/ui/Spinner";
+import { useEffect, useState, type FormEvent } from "react";
+import NumberField from "@/components/ui/NumberField";
+import RatioField from "@/components/ui/RatioField";
+import { ErrorMessage } from "@/components/ui/Messages";
+import { useToast } from "@/components/ui/Toast";
 import { api } from "@/lib/client-api";
 import {
   parseNumberInput,
@@ -19,26 +13,20 @@ import {
 } from "@/lib/helpers";
 import type { MixingUnits, SettingsData } from "@/types";
 
-function FormRow({
-  label,
-  children,
-}: {
-  label: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-4 p-2">
-      <div>{label}</div>
-      <div className="flex flex-wrap items-center gap-2">{children}</div>
-    </div>
-  );
+type SettingsResponse = SettingsData | Record<string, never>;
+
+/** The settings endpoint returns `{}` until the user has saved defaults. */
+function hasSettings(value: SettingsResponse): value is SettingsData {
+  return "base" in value;
 }
 
 export default function SettingsForm() {
+  const showToast = useToast();
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [requestId, setRequestId] = useState(0);
   const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [mixingUnits, setMixingUnits] = useState<MixingUnits>("both");
   const [targetPg, setTargetPg] = useState(30);
@@ -61,26 +49,29 @@ export default function SettingsForm() {
     let cancelled = false;
 
     api
-      .get<SettingsData | Record<string, never>>("/api/settings")
+      .get<SettingsResponse>("/api/settings")
       .then((data) => {
-        if (cancelled || !("base" in data)) return;
-        setTheme(data.theme);
-        setMixingUnits(data.units);
-        setTargetPg(data.base.pg);
-        setTargetVg(data.base.vg);
-        setTargetNicStrength(data.strength);
-        setTargetAmount(data.amount);
-        setZeroNicotineMode(data.zeroNicotineMode);
-        setNicConfig({
-          strength: data.nicotine.strength,
-          pg: data.nicotine.base.pg,
-          vg: data.nicotine.base.vg,
-        });
-        setFlavorConfig({
-          percentage: data.flavor.percentage,
-          pg: data.flavor.base.pg,
-          vg: data.flavor.base.vg,
-        });
+        if (cancelled) return;
+        if (hasSettings(data)) {
+          setTheme(data.theme);
+          setMixingUnits(data.units);
+          setTargetPg(data.base.pg);
+          setTargetVg(data.base.vg);
+          setTargetNicStrength(data.strength);
+          setTargetAmount(data.amount);
+          setZeroNicotineMode(data.zeroNicotineMode);
+          setNicConfig({
+            strength: data.nicotine.strength,
+            pg: data.nicotine.base.pg,
+            vg: data.nicotine.base.vg,
+          });
+          setFlavorConfig({
+            percentage: data.flavor.percentage,
+            pg: data.flavor.base.pg,
+            vg: data.flavor.base.vg,
+          });
+        }
+        setIsLoaded(true);
       })
       .catch((caughtError) => {
         if (!cancelled) {
@@ -98,7 +89,14 @@ export default function SettingsForm() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [requestId]);
+
+  const handleRetryLoad = () => {
+    setError("");
+    setIsLoading(true);
+    setIsLoaded(false);
+    setRequestId((current) => current + 1);
+  };
 
   const handleChangeTargetPgVg = (
     value: string | number,
@@ -157,9 +155,9 @@ export default function SettingsForm() {
     }));
   };
 
-  const handleClickSaveSettings = async () => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setError("");
-    setSuccess("");
     setIsSaving(true);
 
     const newSettings = {
@@ -190,7 +188,7 @@ export default function SettingsForm() {
 
     try {
       await api.post("/api/settings", newSettings);
-      setSuccess("Your settings have been saved.");
+      showToast("Settings saved. New batches will use these defaults.");
     } catch (caughtError) {
       setError(
         caughtError instanceof Error
@@ -202,279 +200,163 @@ export default function SettingsForm() {
     }
   };
 
-  const toggleClass = (checked: boolean) =>
-    clsx(
-      "ml-1 text-[2rem]",
-      checked ? "text-brand-green" : "rotate-180 text-brand-red",
-    );
-
   return (
-    <div>
-      <PageHeading>Settings</PageHeading>
+    <form className="settings-form" onSubmit={handleSubmit}>
+      <h1 className="recipe-heading">Calculator Defaults</h1>
       {isLoading ? (
-        <Spinner />
+        <div className="list-state" role="status">
+          <span className="loading-dot" aria-hidden="true" />
+          Loading settings…
+        </div>
+      ) : !isLoaded ? (
+        <div className="settings-load-state">
+          <ErrorMessage>{error || "Failed to load settings."}</ErrorMessage>
+          <button type="button" className="primary" onClick={handleRetryLoad}>
+            Try again
+          </button>
+        </div>
       ) : (
         <>
-          <h2 className="section-heading">Appearance</h2>
-          <hr />
-          <FormRow label={<label htmlFor="mixing-units">Mixing units:</label>}>
-            <select
-              id="mixing-units"
-              value={mixingUnits}
-              onChange={(event) =>
-                setMixingUnits(event.target.value as MixingUnits)
-              }
-              className="rounded-[3px] border-[0.125em] border-brand-cyan bg-surface px-2 py-1 text-base text-cream outline-none focus:border-brand-pink"
-            >
-              <option value="both">Both</option>
-              <option value="volume">Volume (mL)</option>
-              <option value="weight">Weight (g)</option>
-            </select>
-          </FormRow>
-          <hr />
-          <h2 className="section-heading">Target Ejuice</h2>
-          <hr />
-          <FormRow label="Default base:">
-            <span className="label-left">PG/VG</span>
-            <InputBorder>
-              <input
-                type="number"
-                aria-label="Default target PG percentage"
-                value={String(targetPg)}
-                min="0"
-                max="100"
-                onChange={(event) =>
-                  handleChangeTargetPgVg(event.target.value, "pg")
-                }
-              />
-            </InputBorder>
-            <span className="label-between">/</span>
-            <InputBorder>
-              <input
-                type="number"
-                aria-label="Default target VG percentage"
-                value={String(targetVg)}
-                min="0"
-                max="100"
-                onChange={(event) =>
-                  handleChangeTargetPgVg(event.target.value, "vg")
-                }
-              />
-            </InputBorder>
-            <NumberControls
-              label="default target PG percentage"
-              value={targetPg}
-              step={5}
-              onChange={(value) => handleChangeTargetPgVg(value, "pg")}
-            />
-          </FormRow>
-          <hr />
-          <FormRow label="Default strength:">
-            <InputBorder>
-              <input
-                type="number"
-                aria-label="Default target nicotine strength"
-                value={String(targetNicStrength)}
-                min="0"
-                onChange={(event) =>
-                  handleChangeTargetNicStrength(event.target.value)
-                }
-              />
-            </InputBorder>
-            <span className="label-right">mg/mL</span>
-            <NumberControls
-              label="default target nicotine strength"
-              value={targetNicStrength}
-              step={1}
-              min={0}
-              onChange={handleChangeTargetNicStrength}
-            />
-          </FormRow>
-          <hr />
-          <FormRow label="Default amount:">
-            <InputBorder>
-              <input
-                type="number"
-                className="wide"
-                aria-label="Default target amount"
-                value={String(targetAmount)}
-                min="0"
-                onChange={(event) =>
-                  handleChangeTargetAmount(event.target.value)
-                }
-              />
-            </InputBorder>
-            <span className="label-right">mL</span>
-            <NumberControls
-              label="default target amount"
-              value={targetAmount}
-              step={10}
-              min={0}
-              onChange={handleChangeTargetAmount}
-            />
-          </FormRow>
-          <hr />
-          <h2 className="section-heading">Nicotine</h2>
-          <hr />
-          <FormRow
-            label={
-              <span>
-                Zero Nicotine Mode:{" "}
-                <InfoTooltip content="Removes all nicotine options from the calculator when enabled." />
-              </span>
-            }
-          >
-            <span className="label-left">
-              {zeroNicotineMode ? "Enabled" : "Disabled"}
-            </span>
-            <Button
-              variant="ghost"
-              role="switch"
-              aria-checked={zeroNicotineMode}
-              aria-label="Toggle zero nicotine mode"
-              onClick={() => setZeroNicotineMode((value) => !value)}
-            >
-              <FontAwesomeIcon
-                icon={faToggleOn}
-                className={toggleClass(zeroNicotineMode)}
-              />
-            </Button>
-          </FormRow>
-          <hr />
-          <FormRow label="Default strength (undiluted):">
-            <InputBorder>
-              <input
-                type="number"
-                className="wide"
-                aria-label="Default nicotine base strength"
-                value={String(nicConfig.strength)}
-                min="0"
-                onChange={(event) =>
-                  handleChangeNicConfigStrength(event.target.value)
-                }
-              />
-            </InputBorder>
-            <span className="label-right">mg/mL</span>
-            <NumberControls
-              label="default nicotine base strength"
-              value={nicConfig.strength}
-              step={5}
-              min={0}
-              onChange={handleChangeNicConfigStrength}
-            />
-          </FormRow>
-          <hr />
-          <FormRow label="Default base:">
-            <span className="label-left">PG/VG</span>
-            <InputBorder>
-              <input
-                type="number"
-                aria-label="Default nicotine base PG percentage"
-                value={String(nicConfig.pg)}
-                min="0"
-                max="100"
-                onChange={(event) =>
-                  handleChangeNicConfigPgVg(event.target.value, "pg")
-                }
-              />
-            </InputBorder>
-            <span className="label-between">/</span>
-            <InputBorder>
-              <input
-                type="number"
-                aria-label="Default nicotine base VG percentage"
-                value={String(nicConfig.vg)}
-                min="0"
-                max="100"
-                onChange={(event) =>
-                  handleChangeNicConfigPgVg(event.target.value, "vg")
-                }
-              />
-            </InputBorder>
-            <NumberControls
-              label="default nicotine base PG percentage"
-              value={nicConfig.pg}
-              step={5}
-              onChange={(value) => handleChangeNicConfigPgVg(value, "pg")}
-            />
-          </FormRow>
-          <hr />
-          <h2 className="section-heading">Flavors</h2>
-          <hr />
-          <FormRow label="Default base:">
-            <span className="label-left">PG/VG</span>
-            <InputBorder>
-              <input
-                type="number"
-                aria-label="Default flavor base PG percentage"
-                value={String(flavorConfig.pg)}
-                min="0"
-                max="100"
-                onChange={(event) =>
-                  handleChangeFlavorConfigPgVg(event.target.value, "pg")
-                }
-              />
-            </InputBorder>
-            <span className="label-between">/</span>
-            <InputBorder>
-              <input
-                type="number"
-                aria-label="Default flavor base VG percentage"
-                value={String(flavorConfig.vg)}
-                min="0"
-                max="100"
-                onChange={(event) =>
-                  handleChangeFlavorConfigPgVg(event.target.value, "vg")
-                }
-              />
-            </InputBorder>
-            <NumberControls
-              label="default flavor base PG percentage"
-              value={flavorConfig.pg}
-              step={5}
-              onChange={(value) => handleChangeFlavorConfigPgVg(value, "pg")}
-            />
-          </FormRow>
-          <hr />
-          <FormRow label="Default percentage:">
-            <InputBorder>
-              <input
-                type="number"
-                aria-label="Default flavor percentage"
-                value={String(flavorConfig.percentage)}
-                min="0"
-                onChange={(event) =>
-                  handleChangeFlavorConfigPercentage(event.target.value)
-                }
-              />
-            </InputBorder>
-            <span className="label-right">%</span>
-            <NumberControls
-              label="default flavor percentage"
-              value={flavorConfig.percentage}
-              step={0.5}
-              min={0}
-              onChange={handleChangeFlavorConfigPercentage}
-            />
-          </FormRow>
-          <hr />
-          {error && <ErrorMessage>{error}</ErrorMessage>}
-          {success && <SuccessMessage>{success}</SuccessMessage>}
-          {isSaving && <Spinner />}
-          {!isSaving && (
-            <div className="flex flex-row-reverse px-2 pt-4">
-              <button
-                type="button"
-                className="btn-green text-base"
-                onClick={handleClickSaveSettings}
-              >
-                <FontAwesomeIcon icon={faSave} className="mr-2" />
-                Save Settings
-              </button>
+          <section className="settings-section">
+            <div className="settings-description">
+              <h2>Mixing Units</h2>
+              <p>Choose how amounts appear in your results.</p>
             </div>
-          )}
+            <div className="settings-controls">
+              <label className="select-field">
+                <span className="sr-only">Mixing units</span>
+                <select
+                  aria-label="Mixing units"
+                  value={mixingUnits}
+                  onChange={(event) =>
+                    setMixingUnits(event.target.value as MixingUnits)
+                  }
+                >
+                  <option value="both">Volume &amp; Weight · mL &amp; g</option>
+                  <option value="volume">Volume · mL</option>
+                  <option value="weight">Weight · g</option>
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <section className="settings-section">
+            <div className="settings-description">
+              <h2>Batch</h2>
+              <p>Defaults for opening the calculator.</p>
+            </div>
+            <div className="settings-controls">
+              <RatioField
+                label="Base"
+                ariaLabel="Batch base"
+                pg={targetPg}
+                vg={targetVg}
+                onChange={handleChangeTargetPgVg}
+                pgTestId="settingsTargetPgInput"
+                vgTestId="settingsTargetVgInput"
+              />
+              <NumberField
+                label="Amount"
+                unit="mL"
+                value={targetAmount}
+                min={0}
+                max={10000}
+                step={10}
+                onChange={handleChangeTargetAmount}
+                inputTestId="settingsTargetAmountInput"
+              />
+              <NumberField
+                label="Nicotine Strength"
+                unit="mg/mL"
+                value={targetNicStrength}
+                min={0}
+                step={1}
+                onChange={handleChangeTargetNicStrength}
+                inputTestId="settingsTargetNicStrengthInput"
+              />
+            </div>
+          </section>
+
+          <section className="settings-section">
+            <div className="settings-description">
+              <h2>Nicotine</h2>
+              <p>The strength and carrier of your undiluted base.</p>
+            </div>
+            <div className="settings-controls">
+              <label className="switch-row">
+                <span>
+                  <strong>Zero nicotine mode</strong>
+                  <small>Hide nicotine controls for nicotine-free mixes.</small>
+                </span>
+                <input
+                  type="checkbox"
+                  role="switch"
+                  aria-label="Zero nicotine mode"
+                  checked={zeroNicotineMode}
+                  onChange={(event) =>
+                    setZeroNicotineMode(event.target.checked)
+                  }
+                />
+                <span className="switch-track" aria-hidden="true" />
+              </label>
+              <NumberField
+                label="Undiluted Strength"
+                unit="mg/mL"
+                value={nicConfig.strength}
+                min={0}
+                max={1000}
+                step={5}
+                onChange={handleChangeNicConfigStrength}
+                inputTestId="settingsNicStrengthInput"
+              />
+              <RatioField
+                label="Base"
+                ariaLabel="Undiluted nicotine base"
+                pg={nicConfig.pg}
+                vg={nicConfig.vg}
+                onChange={handleChangeNicConfigPgVg}
+                pgTestId="settingsNicPgInput"
+                vgTestId="settingsNicVgInput"
+              />
+            </div>
+          </section>
+
+          <section className="settings-section">
+            <div className="settings-description">
+              <h2>Flavors</h2>
+              <p>Defaults for each flavor you add.</p>
+            </div>
+            <div className="settings-controls">
+              <RatioField
+                label="Base"
+                ariaLabel="Flavor base"
+                pg={flavorConfig.pg}
+                vg={flavorConfig.vg}
+                onChange={handleChangeFlavorConfigPgVg}
+                pgTestId="settingsFlavorPgInput"
+                vgTestId="settingsFlavorVgInput"
+              />
+              <NumberField
+                label="Flavor Percentage"
+                unit="%"
+                value={flavorConfig.percentage}
+                min={0}
+                max={100}
+                step={0.5}
+                onChange={handleChangeFlavorConfigPercentage}
+                inputTestId="settingsFlavorPercentageInput"
+              />
+            </div>
+          </section>
+
+          {error && <ErrorMessage>{error}</ErrorMessage>}
+          <div className="form-actions">
+            <button type="submit" className="primary" disabled={isSaving}>
+              {isSaving ? "Saving…" : "Save settings"}
+            </button>
+          </div>
         </>
       )}
-    </div>
+    </form>
   );
 }

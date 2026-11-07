@@ -4,10 +4,10 @@ export const metadata = { title: "About ejuicr" };
 
 export default function AboutPage() {
   return (
-    <>
+    <article className="information panel">
       <h1>About ejuicr</h1>
       <hr />
-      <p className="px-8 text-center">
+      <p>
         The goal of ejuicr is to a vaper&apos;s fist choice for a convenient and
         easy-to-use ejuice calculator.
       </p>
@@ -51,6 +51,6 @@ export default function AboutPage() {
         You will never receive emails from us unless you email us for support or
         request a password reset.
       </p>
-    </>
+    </article>
   );
 }

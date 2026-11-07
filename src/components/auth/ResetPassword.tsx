@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import InputBorder from "@/components/ui/InputBorder";
-import { ErrorMessage, SuccessMessage } from "@/components/ui/Messages";
-import Spinner from "@/components/ui/Spinner";
 import { api } from "@/lib/client-api";
+import Spinner from "@/components/ui/Spinner";
 
-export default function ResetPassword({ onCancel }: { onCancel?: () => void }) {
+export default function ResetPassword({
+  onSignIn,
+}: {
+  onSignIn?: () => void;
+}) {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -19,6 +21,7 @@ export default function ResetPassword({ onCancel }: { onCancel?: () => void }) {
     setIsLoading(true);
 
     try {
+      // ADR-007: the response is generic, whether or not the account exists.
       await api.post("/api/user/reset-password", { email });
       setSuccess("Check your email inbox for a link to change your password.");
     } catch (caughtError) {
@@ -32,40 +35,59 @@ export default function ResetPassword({ onCancel }: { onCancel?: () => void }) {
     }
   };
 
+  if (isLoading) return <Spinner />;
+
+  if (success) {
+    return (
+      <>
+        <h1>Check your email</h1>
+        <div className="message success" role="status">
+          {success}
+        </div>
+        {onSignIn && (
+          <button type="button" className="primary" onClick={onSignIn}>
+            Return to sign in
+          </button>
+        )}
+      </>
+    );
+  }
+
   return (
     <>
-      <h2 className="my-[0.5em] text-[2.25rem]">Reset Password</h2>
-      {error && <ErrorMessage>{error}</ErrorMessage>}
-      {success && <SuccessMessage>{success}</SuccessMessage>}
-      {isLoading && <Spinner />}
-      {!isLoading && !success && (
-        <form onSubmit={handleSubmit}>
-          <div className="mb-6">
-            <InputBorder className="mx-auto block max-w-[260px]">
-              <input
-                type="email"
-                aria-label="Email"
-                placeholder="Email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-              />
-            </InputBorder>
+      <h1>Reset password</h1>
+      <p className="auth-intro">
+        Enter your email address to request a password reset link.
+      </p>
+      <form className="auth-form" onSubmit={handleSubmit}>
+        <label>
+          Email
+          <input
+            type="email"
+            autoComplete="email"
+            aria-label="Email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+          />
+        </label>
+        {error && (
+          <div className="message error" role="alert">
+            {error}
           </div>
-          <div className="flex justify-center gap-4">
-            {onCancel && (
-              <button
-                type="button"
-                className="btn-red px-5 py-2 text-base"
-                onClick={onCancel}
-              >
-                Cancel
-              </button>
-            )}
-            <button type="submit" className="btn-green px-5 py-2 text-base">
-              Confirm
-            </button>
-          </div>
-        </form>
+        )}
+        <button type="submit" className="primary">
+          Send reset link
+        </button>
+      </form>
+      {onSignIn && (
+        <button
+          type="button"
+          className="text-button auth-return"
+          onClick={onSignIn}
+        >
+          Return to sign in
+        </button>
       )}
     </>
   );

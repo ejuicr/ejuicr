@@ -28,7 +28,7 @@ describe("UserProfile", () => {
     );
 
     expect(
-      screen.getByAltText("your Twitter profile picture"),
+      screen.getByAltText("Your Twitter profile picture"),
     ).toHaveAttribute("src", "https://example.com/twitter.png");
   });
 
@@ -45,7 +45,7 @@ describe("UserProfile", () => {
     );
 
     expect(
-      screen.getByAltText("your Google profile picture"),
+      screen.getByAltText("Your Google profile picture"),
     ).toHaveAttribute("src", "https://example.com/google.png");
   });
 

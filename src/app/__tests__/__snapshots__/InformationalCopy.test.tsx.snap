@@ -1,0 +1,52 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`preserves the existing About copy 1`] = `
+"About ejuicr
+The goal of ejuicr is to a vaper's fist choice for a convenient and easy-to-use ejuice calculator.
+Use it Anywhere
+If it can load a web page, it can run ejuicr.
+We try to keep the UI simple and unobtrusive so that you can use eJuicr easily whether you're reaching past a bunch of bottles for your keyboard or pecking at your phone with one hand and mixing juice with the other.
+Install the web app to your desktop or home screen so you can even use ejuicr offline! (coming soon...)
+Little to No Setup Time
+The faster you can start mixing, the better. So we try to remove as many speed bumps as possible.
+If you sign in, you can save your defaults (nicotine strength, PG/VG ratio, etc) to make mixing your ejuice even faster.
+No Ads or Trackers - Ever
+ejuicr is a labour of love.
+We don't want your money or your data.
+If there's anything we want from you, it's your feedback.
+No Unnecessary Emails - Ever.
+We hate spam.
+You will never receive emails from us unless you email us for support or request a password reset."
+`;
+
+exports[`preserves the existing Contribute copy 1`] = `
+"Contribute
+Send Feedback
+The easiest way to contribute is to send us your feedback by email (feedback@example.test) or twitter (@ejuicr).
+We appreciate any feedback you'd like to share.
+If you don't really have anything to say about ejuicr right now maybe you could answer one or more of the questions below for us:
+How did you find ejuicr?
+How long have you been using ejuicr?
+When and how do you typically use ejuicr?
+Do you find ejuicr easy to use or did you have trouble at first?
+What's your favorite or least favorite thing about ejuicr?
+Is there a feature you wish that ejuicr had?
+Ever had a problem with ejuicr? If so, what was it?
+Does ejuicr fail on any devices you've tried?
+How likely are you to recommend ejuicr to a friend?
+Github
+The source code for ejuicr is available on Github.
+If you'd like to report a bug or formally suggest a new feature, please create a new issue on the issues page.
+Feel free to submit pull request if you'd like to contribute to the codebase. We kindly ask that you clearly document the changes you have made.
+Donate
+If you'd like to throw a couple bucks our way to help with server costs you can send your donation here."
+`;
+
+exports[`preserves the existing Help copy 1`] = `
+"Help
+Contact Support
+If you're having trouble with ejuicr and would like to reach out you can send an email to support@example.test and someone will get back to you.
+You can also send a tweet or a direct message on Twitter to @ejuicr but you may have to wait a bit longer for a reply.
+Send Feedback
+We appreciate any feedback you'd like to share! Please email feedback@example.test or tweet @ejuicr."
+`;

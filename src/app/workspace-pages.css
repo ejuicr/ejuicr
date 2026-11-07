@@ -1,0 +1,529 @@
+/*
+ * Astra variant A workspace pages: calculator defaults, saved recipes, and
+ * informational content. Shared shell and calculator styles stay in globals.css.
+ */
+
+.main-column > main:has(.settings-form),
+.main-column > main:has(.recipe-list-panel) {
+  max-width: 1280px;
+}
+
+/* Calculator defaults */
+.settings-form {
+  max-width: 970px;
+  margin: 0 auto;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.settings-form button:focus-visible {
+  outline: 2px solid var(--color-brand-cyan);
+  outline-offset: 4px;
+}
+
+.settings-description h2 {
+  width: auto;
+  margin: 0;
+  background: none;
+  color: var(--color-cream);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 630;
+  line-height: 1.3;
+}
+
+.settings-section {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 50px;
+  margin-bottom: 16px;
+  padding: 27px 28px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--color-surface);
+  box-shadow: 0 0 34px #00000066;
+}
+
+.settings-description p {
+  max-width: 250px;
+  margin: 9px 0 0;
+  color: var(--color-secondary);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.settings-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.settings-controls > .number-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.settings-controls .number-field .field-label {
+  margin-bottom: 0;
+}
+
+.settings-controls .number-control {
+  width: 160px;
+  flex-shrink: 0;
+}
+
+.settings-controls .ratio-field {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.settings-controls .ratio-inputs {
+  width: 100%;
+}
+
+.settings-form select {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-muted);
+  border-radius: 7px;
+  background: var(--color-ink);
+  color: var(--color-cream);
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+  cursor: pointer;
+}
+
+.settings-form select:focus {
+  border-color: var(--color-brand-purple);
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--color-brand-purple) 15%, transparent);
+}
+
+.switch-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+}
+
+.switch-row strong {
+  display: block;
+  color: var(--color-cream);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.switch-row small {
+  display: block;
+  max-width: 235px;
+  margin-top: 4px;
+  color: var(--color-secondary);
+  font-size: 11px;
+}
+
+.switch-row input {
+  position: absolute;
+  right: 0;
+  width: 40px;
+  opacity: 0;
+}
+
+.switch-track {
+  display: block;
+  width: 38px;
+  height: 22px;
+  flex-shrink: 0;
+  padding: 3px;
+  border: 1px solid var(--color-muted);
+  border-radius: 20px;
+  background: var(--color-ink);
+}
+
+.switch-track::before {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-secondary);
+  content: "";
+  transition: transform 120ms;
+}
+
+.switch-row input:checked + .switch-track {
+  border-color: transparent;
+  background: var(--gradient);
+}
+
+.switch-row input:checked + .switch-track::before {
+  background: var(--color-ink);
+  transform: translateX(15px);
+}
+
+.switch-row input:focus-visible + .switch-track {
+  outline: 2px solid var(--color-brand-cyan);
+  outline-offset: 4px;
+}
+
+.settings-form .form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.settings-form .form-actions .primary {
+  height: auto;
+  min-height: 40px;
+  padding: 9px 18px;
+}
+
+.settings-load-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.settings-load-state .primary,
+.list-state .primary,
+.information .primary {
+  min-height: 40px;
+  padding: 9px 15px;
+}
+
+.settings-form .error-message,
+.recipe-list-panel .error-message,
+.information .error-message {
+  margin: 0;
+  padding: 12px 15px;
+  border: 1px solid
+    color-mix(in srgb, var(--color-brand-red) 35%, transparent);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--color-brand-red) 7%, var(--color-ink));
+  color: var(--color-brand-red);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.recipe-list-panel > .error-message {
+  margin-bottom: 16px;
+}
+
+/* Saved recipes */
+.recipe-list-panel {
+  max-width: 970px;
+  margin-inline: auto;
+}
+
+.recipe-list-panel .section-label h1 {
+  width: auto;
+  font-size: 17px;
+  letter-spacing: -0.25px;
+  text-transform: capitalize;
+}
+
+.recipe-list-panel .list-state h2 { text-transform: capitalize; }
+
+.sort-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--color-secondary);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.sort-control select {
+  width: auto;
+  min-height: 36px;
+  padding: 7px 28px 7px 10px;
+  border: 1px solid var(--color-muted);
+  border-radius: 7px;
+  background: var(--color-ink);
+  color: var(--color-cream);
+  font: inherit;
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+}
+
+.sort-control select:focus {
+  border-color: var(--color-brand-purple);
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--color-brand-purple) 15%, transparent);
+}
+
+.recipe-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.recipe-list li {
+  display: flex;
+  margin: 0;
+  align-items: center;
+  gap: 12px;
+  border-top: 1px solid var(--line);
+  line-height: 1.55;
+}
+
+.recipe-open {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+  padding: 20px 2px;
+  color: var(--color-cream);
+  text-align: left;
+  text-decoration: none;
+}
+
+.recipe-open:hover {
+  background: transparent;
+  color: var(--color-brand-cyan);
+}
+
+.recipe-mark {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--color-brand-purple);
+}
+
+.recipe-mark svg {
+  width: 12px;
+  height: 12px;
+}
+
+.recipe-title {
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+
+.recipe-open time {
+  color: var(--color-secondary);
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.recipe-open > svg {
+  width: 10px;
+  height: 10px;
+  color: var(--color-secondary);
+}
+
+.list-state {
+  display: flex;
+  min-height: 260px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.list-state > svg {
+  width: 23px;
+  height: 23px;
+  color: var(--color-secondary);
+}
+
+.list-state p {
+  max-width: 370px;
+  margin: 0;
+}
+
+.loading-dot {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-muted);
+  border-top-color: var(--color-brand-cyan);
+  border-radius: 50%;
+  animation: workspace-spin 1s linear infinite;
+}
+
+@keyframes workspace-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.workspace-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 40px;
+  padding: 9px 15px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--color-ink);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.workspace-action:hover {
+  background: var(--hover-gradient);
+  color: var(--color-ink);
+}
+
+.workspace-action svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Informational panels */
+.information {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 38px;
+  line-height: 1.85;
+}
+
+.information h1 {
+  width: auto;
+  margin: 0 0 23px;
+  background: none;
+  color: var(--color-cream);
+  -webkit-text-fill-color: currentColor;
+  font-family: inherit;
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.6px;
+  line-height: 1.3;
+}
+
+.information h2 {
+  width: auto;
+  margin: 28px 0 10px;
+  background: none;
+  color: var(--color-cream);
+  -webkit-text-fill-color: currentColor;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 630;
+  letter-spacing: -0.15px;
+  line-height: 1.3;
+}
+
+.information p {
+  margin: 15px 0;
+  color: var(--color-secondary);
+  line-height: inherit;
+}
+
+.information ul,
+.information ol {
+  padding-left: 21px;
+  color: var(--color-secondary);
+}
+
+.information ul {
+  list-style: disc;
+}
+
+.information ol {
+  list-style: decimal;
+}
+
+.information li {
+  margin-bottom: 15px;
+  line-height: inherit;
+}
+
+.information strong {
+  color: var(--color-cream);
+  font-weight: 500;
+}
+
+.information hr {
+  display: none;
+}
+
+.information .workspace-action {
+  margin-top: 8px;
+}
+
+@media (max-width: 800px) {
+  .settings-section {
+    grid-template-columns: 1fr 1.3fr;
+    gap: 30px;
+    padding: 22px;
+  }
+
+  .settings-controls > .number-field {
+    display: block;
+  }
+
+  .settings-controls .number-field .field-label {
+    margin-bottom: 9px;
+  }
+
+  .settings-controls .number-control {
+    width: 100%;
+  }
+}
+
+@media (max-width: 540px) {
+  .settings-section {
+    display: block;
+    padding: 21px 18px;
+  }
+
+  .settings-controls {
+    margin-top: 22px;
+  }
+
+  .settings-description p {
+    max-width: none;
+  }
+
+  .sort-control > span {
+    display: none;
+  }
+
+  .sort-control select {
+    max-width: 125px;
+  }
+
+  .recipe-mark,
+  .recipe-open > svg {
+    display: none;
+  }
+
+  .recipe-open {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-block: 20px;
+  }
+
+  .recipe-title {
+    flex-basis: 100%;
+  }
+
+  .recipe-open time {
+    font-size: 11px;
+  }
+
+  .information {
+    padding: 23px;
+  }
+}

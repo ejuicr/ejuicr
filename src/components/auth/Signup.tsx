@@ -1,21 +1,20 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import AuthProviders from "@/components/auth/AuthProviders";
 import { useAuth } from "@/components/providers/AuthProvider";
-import Button from "@/components/ui/Button";
-import InputBorder from "@/components/ui/InputBorder";
-import { ErrorMessage } from "@/components/ui/Messages";
 import Spinner from "@/components/ui/Spinner";
 import { api } from "@/lib/client-api";
 import { validateEmail, validatePassword } from "@/lib/helpers";
 
 interface SignupProps {
-  onCancel?: () => void;
   onLogin?: () => void;
   onSuccess?: () => void;
 }
 
-export default function Signup({ onCancel, onLogin, onSuccess }: SignupProps) {
+export default function Signup({ onLogin, onSuccess }: SignupProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
@@ -59,69 +58,65 @@ export default function Signup({ onCancel, onLogin, onSuccess }: SignupProps) {
 
   return (
     <>
-      <h2 className="my-[0.5em] text-[2.25rem]">Signup</h2>
-      {error && <ErrorMessage>{error}</ErrorMessage>}
+      <h1>Create an account</h1>
+      <AuthProviders />
       {isLoading ? (
         <Spinner />
       ) : (
         <>
-          <form onSubmit={handleSubmit}>
-            <div className="mb-6">
-              <InputBorder className="mx-auto block max-w-[260px]">
-                <input
-                  type="email"
-                  aria-label="Email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                />
-              </InputBorder>
-            </div>
-            <div className="mb-6">
-              <InputBorder className="mx-auto block max-w-[260px]">
-                <input
-                  type="password"
-                  aria-label="Password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                />
-              </InputBorder>
-            </div>
-            <div className="mb-6">
-              <InputBorder className="mx-auto block max-w-[260px]">
-                <input
-                  type="password"
-                  aria-label="Confirm password"
-                  placeholder="Confirm Password"
-                  value={passwordConfirm}
-                  onChange={(event) => setPasswordConfirm(event.target.value)}
-                />
-              </InputBorder>
-            </div>
-            <div className="flex justify-center gap-4">
-              {onCancel && (
-                <button
-                  type="button"
-                  className="btn-red px-5 py-2 text-base"
-                  onClick={onCancel}
-                >
-                  Cancel
-                </button>
-              )}
-              <button type="submit" className="btn-green px-5 py-2 text-base">
-                Sign Up
-              </button>
-            </div>
+          <form className="auth-form" onSubmit={handleSubmit}>
+            <label>
+              Email
+              <input
+                type="email"
+                autoComplete="email"
+                aria-label="Email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+              />
+            </label>
+            <label>
+              Password
+              <input
+                type="password"
+                autoComplete="new-password"
+                aria-label="Password"
+                placeholder="Password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+              />
+            </label>
+            <label>
+              Confirm password
+              <input
+                type="password"
+                autoComplete="new-password"
+                aria-label="Confirm password"
+                placeholder="Confirm Password"
+                value={passwordConfirm}
+                onChange={(event) => setPasswordConfirm(event.target.value)}
+              />
+            </label>
+            <p className="field-note">
+              At least 6 characters. Passwords are limited to 72 bytes.
+            </p>
+            {error && (
+              <div className="message error" role="alert">
+                {error}
+              </div>
+            )}
+            <button type="submit" className="primary">
+              Create account
+              <FontAwesomeIcon icon={faArrowRight} />
+            </button>
           </form>
           {onLogin && (
-            <p className="text-[0.9rem]">
-              Already have an account?
-              <br />
-              <Button variant="link" onClick={onLogin}>
-                Sign in instead
-              </Button>
-              .
+            <p className="auth-other">
+              Already have an account?{" "}
+              <button type="button" className="text-button" onClick={onLogin}>
+                Sign in
+              </button>
             </p>
           )}
         </>

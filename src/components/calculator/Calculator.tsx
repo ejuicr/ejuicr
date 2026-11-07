@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Ingredients from "./Ingredients";
+import Results from "./Results";
 import SaveRecipe from "./SaveRecipe";
 import TargetEjuice from "./TargetEjuice";
 import { useCalculator } from "./useCalculator";
@@ -23,23 +24,25 @@ export default function Calculator({ recipe }: { recipe?: Recipe }) {
 
   return (
     <>
-      <div>
-        {recipe ? (
-          <div className="recipe-header">
-            <h1 className="text-center">{name}</h1>
-            <hr className="mb-8" />
-          </div>
-        ) : (
-          <h1 className="sr-only">ejuicr calculator</h1>
-        )}
-        <TargetEjuice calculator={calculator} />
-        <Ingredients calculator={calculator} />
+      {recipe ? (
+        <h1 className="recipe-heading">{name}</h1>
+      ) : (
+        <h1 className="sr-only">Ejuice calculator</h1>
+      )}
+      <div className="calculator-layout workbench">
+        <div className="inputs-zone">
+          <TargetEjuice calculator={calculator} />
+          <Ingredients calculator={calculator} />
+        </div>
+        <div className="results-zone">
+          <Results calculator={calculator} />
+        </div>
+        <SaveRecipe
+          calculator={calculator}
+          recipe={recipe}
+          onRenamed={setName}
+        />
       </div>
-      <SaveRecipe
-        calculator={calculator}
-        recipe={recipe}
-        onRenamed={setName}
-      />
     </>
   );
 }

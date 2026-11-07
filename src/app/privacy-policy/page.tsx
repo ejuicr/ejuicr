@@ -2,7 +2,7 @@ export const metadata = { title: "Privacy Policy" };
 
 export default function PrivacyPolicyPage() {
   return (
-    <div>
+    <article className="information panel">
       <h1>Privacy Policy</h1>
       <hr />
       <p>
@@ -54,6 +54,6 @@ export default function PrivacyPolicyPage() {
         By using this web app, you consent to the terms of this privacy policy.
         If you do not agree to this privacy policy, do not use this web app.
       </p>
-    </div>
+    </article>
   );
 }

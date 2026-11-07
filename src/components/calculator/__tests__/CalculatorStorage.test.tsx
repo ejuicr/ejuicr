@@ -24,6 +24,12 @@ vi.mock("@/lib/client-api", () => ({
 import { CALCULATOR_STORAGE_VERSION } from "@/lib/calculator";
 import Calculator from "../Calculator";
 
+const resultCell = (text: string) =>
+  screen.queryByText(
+    (_content, element) =>
+      element?.tagName === "TD" && element.textContent === text,
+  );
+
 describe("Calculator storage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -98,8 +104,8 @@ describe("Calculator storage", () => {
     render(<Calculator />);
 
     expect(screen.getByTestId("flavor1PercentInput")).toHaveValue(5);
-    expect(screen.getByText("1.5mL")).toBeInTheDocument();
-    expect(screen.queryByText("9999mL")).not.toBeInTheDocument();
+    expect(resultCell("1.5mL")).toBeInTheDocument();
+    expect(resultCell("9999mL")).not.toBeInTheDocument();
   });
 
   it("persists only inputs with an explicit version", () => {

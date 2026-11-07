@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useToast } from "@/components/ui/Toast";
 
 const MESSAGES: Record<string, string> = {
   google: "Google sign-in failed. Please try again.",
@@ -20,32 +21,25 @@ export default function AuthErrorNotice() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
-  const [dismissed, setDismissed] = useState(false);
+  const showToast = useToast();
+  const shown = useRef<string | null>(null);
 
   const error = searchParams.get("authError");
-  if (!error || dismissed) return null;
 
-  const dismiss = () => {
-    setDismissed(true);
+  useEffect(() => {
+    if (!error || shown.current === error) return;
+    shown.current = error;
+
+    showToast(MESSAGES[error] ?? "Sign-in failed. Please try again.", "error");
+
     const params = new URLSearchParams(searchParams.toString());
     params.delete("authError");
     const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
-  };
+    const hash = window.location.hash;
+    router.replace(`${pathname}${query ? `?${query}` : ""}${hash}`, {
+      scroll: false,
+    });
+  }, [error, pathname, router, searchParams, showToast]);
 
-  return (
-    <div
-      role="alert"
-      className="fixed inset-x-0 top-0 z-[100] flex items-center justify-center gap-4 bg-brand-red px-4 py-3 text-ink"
-    >
-      <p className="m-0">{MESSAGES[error] ?? "Sign-in failed. Please try again."}</p>
-      <button
-        type="button"
-        onClick={dismiss}
-        className="border border-ink/40 bg-transparent px-2 py-1 text-ink hover:bg-ink/10 active:bg-ink/20"
-      >
-        Dismiss
-      </button>
-    </div>
-  );
+  return null;
 }

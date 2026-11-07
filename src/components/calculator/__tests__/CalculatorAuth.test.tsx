@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   get: vi.fn(),
+  post: vi.fn(),
   put: vi.fn(),
   user: {
     _id: "user-1",
@@ -25,10 +26,11 @@ vi.mock("@/components/providers/AuthProvider", () => ({
 }));
 
 vi.mock("@/lib/client-api", () => ({
-  api: { get: mocks.get, post: vi.fn(), put: mocks.put, delete: vi.fn() },
+  api: { get: mocks.get, post: mocks.post, put: mocks.put, delete: vi.fn() },
 }));
 
 import Calculator from "../Calculator";
+import ToastProvider from "@/components/ui/Toast";
 import type { Recipe, SettingsData } from "@/types";
 
 const settings: SettingsData = {
@@ -108,7 +110,7 @@ describe("Calculator initialization", () => {
     });
 
     expect(screen.getByTestId("targetNicStrengthInput")).toHaveValue(6);
-    expect(screen.getByText(/Nic\. \(100mg, 100\/0\)/)).toBeInTheDocument();
+    expect(screen.getByText("100mg/mL · 100% PG")).toBeInTheDocument();
   });
 
   it("initializes a fresh calculator from saved defaults", async () => {
@@ -137,7 +139,10 @@ describe("Calculator initialization", () => {
     });
 
     expect(screen.queryByTestId("targetNicStrengthInput")).not.toBeInTheDocument();
-    expect(screen.queryByText(/Nic\./)).not.toBeInTheDocument();
+    expect(screen.queryByTestId("nicConfigBtn")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Undiluted Nicotine"),
+    ).not.toBeInTheDocument();
   });
 
   it("automatically applies saved defaults over a restored draft without a button", async () => {
@@ -386,16 +391,46 @@ describe("Calculator initialization", () => {
     expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
   });
 
+  it("shows save success as a transient toast", async () => {
+    mocks.get.mockResolvedValue(settings);
+    mocks.post.mockResolvedValue({ ...recipe, _id: "recipe-2", name: "New Mix" });
+
+    render(
+      <ToastProvider>
+        <Calculator />
+      </ToastProvider>,
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId("targetAmountInput")).toHaveValue(50),
+    );
+
+    fireEvent.change(screen.getByRole("textbox", { name: "Recipe name" }), {
+      target: { value: "New Mix" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('"New Mix" has been saved to your recipes.'),
+      ).toBeInTheDocument(),
+    );
+    expect(document.querySelector(".save-block .message.success")).toBeNull();
+  });
+
   it("renames a saved recipe from the editable title input", async () => {
     mocks.get.mockResolvedValue(settings);
     mocks.put.mockResolvedValue({ ...recipe, name: "Mango Blast" });
 
-    render(<Calculator recipe={recipe} />);
+    render(
+      <ToastProvider>
+        <Calculator recipe={recipe} />
+      </ToastProvider>,
+    );
     await act(async () => {});
 
     expect(document.title).toBe("Mango Mix - ejuicr");
 
-    const titleInput = screen.getByRole("textbox", { name: "Recipe title" });
+    const titleInput = screen.getByRole("textbox", { name: "Recipe name" });
     expect(titleInput).toHaveValue("Mango Mix");
 
     fireEvent.change(titleInput, { target: { value: "Mango Blast" } });
@@ -410,5 +445,8 @@ describe("Calculator initialization", () => {
       "Mango Blast",
     );
     expect(document.title).toBe("Mango Blast - ejuicr");
+    expect(
+      screen.getByText('"Mango Blast" has been updated.'),
+    ).toBeInTheDocument();
   });
 });

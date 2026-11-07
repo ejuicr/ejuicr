@@ -4,7 +4,7 @@ export const metadata = { title: "Contribute" };
 
 export default function ContributePage() {
   return (
-    <>
+    <article className="information panel">
       <h1>Contribute</h1>
       <hr />
       <h2 className="section-heading">Send Feedback</h2>
@@ -82,6 +82,6 @@ export default function ContributePage() {
           </p>
         </>
       )}
-    </>
+    </article>
   );
 }
