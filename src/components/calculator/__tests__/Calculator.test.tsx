@@ -14,7 +14,13 @@ vi.mock("@/components/providers/AuthProvider", () => ({
 
 import Calculator from "../Calculator";
 
-const { getByTestId, getByText } = screen;
+const { getAllByText, getByRole, getByTestId, getByText } = screen;
+
+const resultCell = (text: string) =>
+  getByText(
+    (_content, element) =>
+      element?.tagName === "TD" && element.textContent === text,
+  );
 
 const app = <Calculator />;
 
@@ -25,9 +31,10 @@ beforeEach(() => {
 describe("Calculator", () => {
   it("renders the Target Ejuice form correctly", () => {
     render(app);
-    expect(getByText(/Base:/i)).toBeInTheDocument();
-    expect(getByText(/Strength:/i)).toBeInTheDocument();
-    expect(getByText(/Amount:/i)).toBeInTheDocument();
+    expect(getByText("Batch")).toBeInTheDocument();
+    expect(getAllByText("Base").length).toBeGreaterThan(0);
+    expect(getByText("Nicotine Strength")).toBeInTheDocument();
+    expect(getByText("Amount")).toBeInTheDocument();
 
     const targetPgInput = getByTestId("targetPgInput");
     const targetVgInput = getByTestId("targetVgInput");
@@ -35,8 +42,10 @@ describe("Calculator", () => {
     const targetAmountInput = getByTestId("targetAmountInput");
 
     expect(targetPgInput).toHaveAttribute("type", "number");
+    expect(targetPgInput).toHaveAttribute("step", "any");
     expect(targetPgInput).toHaveValue(30);
     expect(targetVgInput).toHaveAttribute("type", "number");
+    expect(targetVgInput).toHaveAttribute("step", "any");
     expect(targetVgInput).toHaveValue(70);
     expect(targetNicStrengthInput).toHaveAttribute("type", "number");
     expect(targetNicStrengthInput).toHaveValue(6);
@@ -46,18 +55,22 @@ describe("Calculator", () => {
 
   it("renders the Ingredients section correctly", () => {
     render(app);
-    expect(getByText("Nic. (100mg, 100/0)")).toBeInTheDocument();
-    expect(getByText("PG")).toBeInTheDocument();
-    expect(getByText("VG")).toBeInTheDocument();
+    expect(getByText("Undiluted Nicotine")).toBeInTheDocument();
+    expect(getByText("100mg/mL · 100% PG")).toBeInTheDocument();
+    expect(getByText("Flavors")).toBeInTheDocument();
+    expect(getByText("Your Mix")).toBeInTheDocument();
+    expect(getByRole("row", { name: /^PG/ })).toBeInTheDocument();
+    expect(getByRole("row", { name: /^VG/ })).toBeInTheDocument();
+    expect(getByRole("row", { name: /^Nicotine/ })).toBeInTheDocument();
     expect(getByTestId("flavor1ConfigBtn")).toBeInTheDocument();
     expect(getByTestId("flavor1PercentIncBtn")).toBeInTheDocument();
     expect(getByTestId("flavor1PercentDecBtn")).toBeInTheDocument();
     expect(getByTestId("flavor1DeleteBtn")).toBeInTheDocument();
     expect(getByTestId("flavorAddBtn")).toBeInTheDocument();
-    expect(getByText("1.86g")).toBeInTheDocument();
-    expect(getByText("5.91g")).toBeInTheDocument();
-    expect(getByText("26.46g")).toBeInTheDocument();
-    expect(getByText("1.55g")).toBeInTheDocument();
+    expect(resultCell("1.86g")).toBeInTheDocument();
+    expect(resultCell("5.91g")).toBeInTheDocument();
+    expect(resultCell("26.46g")).toBeInTheDocument();
+    expect(resultCell("1.55g")).toBeInTheDocument();
   });
 });
 
@@ -75,15 +88,15 @@ describe("Nicotine config", () => {
     expect(strengthInput).toHaveValue(100);
   });
 
-  it("ratio number controls work correctly", () => {
+  it("ratio inputs update both sides of the carrier", () => {
     render(app);
     fireEvent.click(getByTestId("nicConfigBtn"));
     const pgInput = getByTestId("nicConfigPgInput");
     const vgInput = getByTestId("nicConfigVgInput");
-    fireEvent.click(getByTestId("nicConfigPgDecBtn"));
+    fireEvent.change(pgInput, { target: { value: "95" } });
     expect(pgInput).toHaveValue(95);
     expect(vgInput).toHaveValue(5);
-    fireEvent.click(getByTestId("nicConfigPgIncBtn"));
+    fireEvent.change(pgInput, { target: { value: "100" } });
     expect(pgInput).toHaveValue(100);
     expect(vgInput).toHaveValue(0);
   });
@@ -107,16 +120,15 @@ describe("Flavor config", () => {
     expect(getByTestId("flavor1ConfigVgInput")).toBeInTheDocument();
   });
 
-  it("ratio number controls work correctly", () => {
+  it("ratio inputs update both sides of the carrier", () => {
     render(app);
     fireEvent.click(getByTestId("flavor1ConfigBtn"));
     const pgInput = getByTestId("flavor1ConfigPgInput");
     const vgInput = getByTestId("flavor1ConfigVgInput");
-    fireEvent.click(getByTestId("flavor1ConfigPgDecBtn"));
-    fireEvent.click(getByTestId("flavor1ConfigPgDecBtn"));
+    fireEvent.change(pgInput, { target: { value: "90" } });
     expect(pgInput).toHaveValue(90);
     expect(vgInput).toHaveValue(10);
-    fireEvent.click(getByTestId("flavor1ConfigPgIncBtn"));
+    fireEvent.change(pgInput, { target: { value: "95" } });
     expect(pgInput).toHaveValue(95);
     expect(vgInput).toHaveValue(5);
   });
@@ -164,8 +176,8 @@ describe("Nicotine", () => {
     expect(input).toHaveValue(6);
     fireEvent.change(input, { target: { value: 4 } });
     expect(input).toHaveValue(4);
-    expect(getByText("1.2mL")).toBeInTheDocument();
-    expect(getByText("1.24g")).toBeInTheDocument();
+    expect(resultCell("1.2mL")).toBeInTheDocument();
+    expect(resultCell("1.24g")).toBeInTheDocument();
   });
 });
 
@@ -176,8 +188,8 @@ describe("Flavors", () => {
     expect(input).toHaveValue(5);
     fireEvent.change(input, { target: { value: 3 } });
     expect(input).toHaveValue(3);
-    expect(getByText("0.9mL")).toBeInTheDocument();
-    expect(getByText("0.93g")).toBeInTheDocument();
+    expect(resultCell("0.9mL")).toBeInTheDocument();
+    expect(resultCell("0.93g")).toBeInTheDocument();
   });
 });
 
@@ -188,8 +200,8 @@ describe("PG", () => {
     expect(input).toHaveValue(30);
     fireEvent.change(input, { target: { value: 50 } });
     expect(input).toHaveValue(50);
-    expect(getByText("11.7mL")).toBeInTheDocument();
-    expect(getByText("12.12g")).toBeInTheDocument();
+    expect(resultCell("11.7mL")).toBeInTheDocument();
+    expect(resultCell("12.12g")).toBeInTheDocument();
   });
 
   it("is calculated correctly from the nicotine ratio", () => {
@@ -198,8 +210,8 @@ describe("PG", () => {
     fireEvent.change(getByTestId("nicConfigPgInput"), {
       target: { value: 50 },
     });
-    expect(getByText("6.6mL")).toBeInTheDocument();
-    expect(getByText("6.84g")).toBeInTheDocument();
+    expect(resultCell("6.6mL")).toBeInTheDocument();
+    expect(resultCell("6.84g")).toBeInTheDocument();
   });
 
   it("is calculated correctly from the flavor ratio", () => {
@@ -208,8 +220,8 @@ describe("PG", () => {
     fireEvent.change(getByTestId("flavor1ConfigPgInput"), {
       target: { value: 50 },
     });
-    expect(getByText("6.45mL")).toBeInTheDocument();
-    expect(getByText("6.68g")).toBeInTheDocument();
+    expect(resultCell("6.45mL")).toBeInTheDocument();
+    expect(resultCell("6.68g")).toBeInTheDocument();
   });
 });
 
@@ -220,8 +232,8 @@ describe("VG", () => {
     expect(input).toHaveValue(70);
     fireEvent.change(input, { target: { value: 30 } });
     expect(input).toHaveValue(30);
-    expect(getByText("9mL")).toBeInTheDocument();
-    expect(getByText("11.34g")).toBeInTheDocument();
+    expect(resultCell("9mL")).toBeInTheDocument();
+    expect(resultCell("11.34g")).toBeInTheDocument();
   });
 
   it("is calculated correctly from the nicotine ratio", () => {
@@ -230,8 +242,8 @@ describe("VG", () => {
     fireEvent.change(getByTestId("nicConfigVgInput"), {
       target: { value: 100 },
     });
-    expect(getByText("19.2mL")).toBeInTheDocument();
-    expect(getByText("24.19g")).toBeInTheDocument();
+    expect(resultCell("19.2mL")).toBeInTheDocument();
+    expect(resultCell("24.19g")).toBeInTheDocument();
   });
 
   it("is calculated correctly from the flavor ratio", () => {
@@ -240,8 +252,8 @@ describe("VG", () => {
     fireEvent.change(getByTestId("flavor1ConfigVgInput"), {
       target: { value: 100 },
     });
-    expect(getByText("19.5mL")).toBeInTheDocument();
-    expect(getByText("24.57g")).toBeInTheDocument();
+    expect(resultCell("19.5mL")).toBeInTheDocument();
+    expect(resultCell("24.57g")).toBeInTheDocument();
   });
 });
 
@@ -276,8 +288,8 @@ describe("Precision", () => {
 
     // 6 mg/mL * 0.1 mL / 100 mg/mL = 0.006 mL. The displayed amount is
     // rounded, but the percentage uses the exact amount: 6%, not 10%.
-    expect(getByText("6%")).toBeInTheDocument();
-    expect(getByText("0.01mL")).toBeInTheDocument();
+    expect(resultCell("6%")).toBeInTheDocument();
+    expect(resultCell("0.01mL")).toBeInTheDocument();
   });
 
   it("marks positive amounts below display precision", () => {
@@ -287,7 +299,7 @@ describe("Precision", () => {
       target: { value: "0.05" },
     });
 
-    expect(getByText("<0.01mL")).toBeInTheDocument();
+    expect(resultCell("<0.01mL")).toBeInTheDocument();
   });
 });
 

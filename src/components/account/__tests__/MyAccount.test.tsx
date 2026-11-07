@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   logout: vi.fn(),
   push: vi.fn(),
   refresh: vi.fn(),
+  showToast: vi.fn(),
   user: {
     _id: "user-1",
     email: "oauth@example.com",
@@ -31,6 +32,10 @@ vi.mock("@/components/providers/AuthProvider", () => ({
   }),
 }));
 
+vi.mock("@/components/ui/Toast", () => ({
+  useToast: () => mocks.showToast,
+}));
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mocks.push, refresh: mocks.refresh }),
 }));
@@ -45,6 +50,14 @@ import MyAccount from "../MyAccount";
 describe("MyAccount set password", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.user = {
+      _id: "user-1",
+      email: "oauth@example.com",
+      authProvider: "google",
+      hasPassword: false,
+      hasGoogleLinked: true,
+      hasTwitterLinked: false,
+    };
     mocks.get.mockImplementation((path: string) =>
       Promise.resolve(
         path === "/api/user/me" ? { ...mocks.user } : { count: 2 },
@@ -73,9 +86,7 @@ describe("MyAccount set password", () => {
     expect(mocks.setUser).toHaveBeenCalledWith(
       expect.objectContaining({ hasPassword: true }),
     );
-    expect(
-      await screen.findByText("Your password has been set."),
-    ).toBeInTheDocument();
+    expect(mocks.showToast).toHaveBeenCalledWith("Your password has been set.");
   });
 
   it("falls back to an available linked profile picture", async () => {
@@ -91,5 +102,29 @@ describe("MyAccount set password", () => {
     expect(
       await screen.findByAltText("Your Twitter profile picture"),
     ).toHaveAttribute("src", "https://example.com/twitter.png");
+  });
+
+  it("protects the only sign-in method before an unlink", async () => {
+    render(<MyAccount />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Unlink" }));
+
+    expect(
+      screen.getByRole("dialog", { name: "Set a password first" }),
+    ).toBeInTheDocument();
+    expect(mocks.delete).not.toHaveBeenCalled();
+  });
+
+  it("confirms account deletion with the shared dialog", async () => {
+    render(<MyAccount />);
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Delete Account" }),
+    );
+
+    expect(
+      screen.getByRole("dialog", { name: "Delete your account?" }),
+    ).toBeInTheDocument();
+    expect(mocks.delete).not.toHaveBeenCalled();
   });
 });

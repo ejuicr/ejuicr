@@ -24,7 +24,16 @@ Recipe list entries use only the existing list endpoint's title and updated date
 
 ## Review status
 
-Awaiting owner comparison; no variant has been selected or promoted. Keep this study off the production branch. After a decision, capture it on a throwaway branch and implement the chosen design separately.
+Variant A (Workbench) is approved for implementation on `ui-rebuild`. It is the
+design reference; variants B and C are not required for implementation or further
+review. Keep the prototype separate from the production implementation: its
+authentication and mutations are simulated.
+
+Implement the shared shell and calculator first, then recipes, settings, account,
+authentication and informational pages. Preserve the existing production APIs,
+calculator behavior and authentication rules. The existing About, Help and
+Contribute page copy must remain unchanged; apply the new design without replacing
+their text with the prototype copy.
 
 ## Verification
 

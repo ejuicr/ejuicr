@@ -2,28 +2,24 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import AuthProviders from "@/components/auth/AuthProviders";
 import { useAuth } from "@/components/providers/AuthProvider";
-import Button from "@/components/ui/Button";
-import InputBorder from "@/components/ui/InputBorder";
-import { ErrorMessage } from "@/components/ui/Messages";
 import Spinner from "@/components/ui/Spinner";
 import { api } from "@/lib/client-api";
 import { validateEmail } from "@/lib/helpers";
 
 interface LoginProps {
-  onCancel?: () => void;
   onSignup?: () => void;
   onResetPassword?: () => void;
   onSuccess?: () => void;
-  hideHeading?: boolean;
 }
 
 export default function Login({
-  onCancel,
   onSignup,
   onResetPassword,
   onSuccess,
-  hideHeading = false,
 }: LoginProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -67,68 +63,60 @@ export default function Login({
 
   return (
     <>
-      {!hideHeading && <h2 className="my-[0.5em] text-[2.25rem]">Login</h2>}
-      {error && <ErrorMessage>{error}</ErrorMessage>}
+      <h1>Sign in</h1>
+      <AuthProviders />
       {isLoading ? (
         <Spinner />
       ) : (
         <>
-          <form onSubmit={handleSubmit}>
-            <div className="mb-6">
-              <InputBorder className="mx-auto block max-w-[260px]">
-                <input
-                  type="email"
-                  aria-label="Email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                />
-              </InputBorder>
-            </div>
-            <div className="mb-6">
-              <InputBorder className="mx-auto block max-w-[260px]">
-                <input
-                  type="password"
-                  aria-label="Password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                />
-              </InputBorder>
-            </div>
-            <div className="flex justify-center gap-4">
-              {onCancel && (
-                <button
-                  type="button"
-                  className="btn-red px-5 py-2 text-base"
-                  onClick={onCancel}
-                >
-                  Cancel
-                </button>
-              )}
-              <button type="submit" className="btn-green px-5 py-2 text-base">
-                Sign In
+          <form className="auth-form" onSubmit={handleSubmit}>
+            <label>
+              Email
+              <input
+                type="email"
+                autoComplete="email"
+                aria-label="Email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+              />
+            </label>
+            <label>
+              Password
+              <input
+                type="password"
+                autoComplete="current-password"
+                aria-label="Password"
+                placeholder="Password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+              />
+            </label>
+            {onResetPassword && (
+              <button
+                type="button"
+                className="text-button forgot"
+                onClick={onResetPassword}
+              >
+                Forgot password?
               </button>
-            </div>
+            )}
+            {error && (
+              <div className="message error" role="alert">
+                {error}
+              </div>
+            )}
+            <button type="submit" className="primary">
+              Sign in
+              <FontAwesomeIcon icon={faArrowRight} />
+            </button>
           </form>
           {onSignup && (
-            <p className="text-[0.9rem]">
-              Need an account?
-              <br />
-              <Button variant="link" onClick={onSignup}>
-                Sign up instead
-              </Button>
-              .
-            </p>
-          )}
-          {onResetPassword && (
-            <p className="text-[0.9rem]">
-              Forgot your password?
-              <br />
-              <Button variant="link" onClick={onResetPassword}>
-                Reset it here
-              </Button>
-              .
+            <p className="auth-other">
+              Need an account?{" "}
+              <button type="button" className="text-button" onClick={onSignup}>
+                Sign up
+              </button>
             </p>
           )}
         </>

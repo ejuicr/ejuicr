@@ -1,176 +1,208 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSortDown } from "@fortawesome/free-solid-svg-icons";
+import {
+  faArrowRight,
+  faBookOpen,
+  faChevronRight,
+  faFlask,
+  faTrashCan,
+} from "@fortawesome/free-solid-svg-icons";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
-import DeleteButton from "@/components/ui/DeleteButton";
-import Button from "@/components/ui/Button";
+import IconButton from "@/components/ui/IconButton";
 import { ErrorMessage } from "@/components/ui/Messages";
-import PageHeading from "@/components/ui/PageHeading";
-import Spinner from "@/components/ui/Spinner";
+import { useToast } from "@/components/ui/Toast";
 import { api } from "@/lib/client-api";
 import type { RecipeSummary } from "@/types";
 
-const sortByDate = (recipes: RecipeSummary[]) =>
-  [...recipes].sort(
-    (a, b) =>
-      new Date(b.updatedAt ?? 0).getTime() - new Date(a.updatedAt ?? 0).getTime(),
-  );
+type SortOrder = "date" | "title";
+
+function updatedTime(updatedAt?: string): number {
+  if (!updatedAt) return 0;
+  const time = new Date(updatedAt).getTime();
+  return Number.isNaN(time) ? 0 : time;
+}
+
+function formatUpdatedDate(updatedAt?: string): string | null {
+  if (!updatedAt) return null;
+  const date = new Date(updatedAt);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
 
 export default function RecipesList() {
+  const showToast = useToast();
   const [recipes, setRecipes] = useState<RecipeSummary[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSortByTitle, setIsSortByTitle] = useState(false);
+  const [sort, setSort] = useState<SortOrder>("date");
   const [error, setError] = useState("");
-  const [pendingDelete, setPendingDelete] = useState<number | null>(null);
+  const [requestId, setRequestId] = useState(0);
+  const [pendingDelete, setPendingDelete] = useState<RecipeSummary | null>(
+    null,
+  );
 
   useEffect(() => {
+    let cancelled = false;
+
     api
       .get<RecipeSummary[]>("/api/recipes")
-      .then((data) => setRecipes(sortByDate(data)))
-      .catch((caughtError) =>
-        setError(
-          caughtError instanceof Error
-            ? caughtError.message
-            : "Failed to load recipes.",
-        ),
-      )
-      .finally(() => setIsLoading(false));
-  }, []);
+      .then((data) => {
+        if (cancelled) return;
+        setRecipes(data);
+        setError("");
+      })
+      .catch((caughtError) => {
+        if (!cancelled) {
+          setError(
+            caughtError instanceof Error
+              ? caughtError.message
+              : "Failed to load recipes.",
+          );
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
 
-  const handleConfirmDelete = async (index: number) => {
-    const target = recipes?.[index];
-    if (!target) return;
+    return () => {
+      cancelled = true;
+    };
+  }, [requestId]);
 
+  const sortedRecipes = useMemo(() => {
+    return [...(recipes ?? [])].sort((a, b) =>
+      sort === "title"
+        ? a.name.localeCompare(b.name)
+        : updatedTime(b.updatedAt) - updatedTime(a.updatedAt),
+    );
+  }, [recipes, sort]);
+
+  const handleRetry = () => {
+    setError("");
     setIsLoading(true);
+    setRequestId((current) => current + 1);
+  };
+
+  const handleDelete = async (recipe: RecipeSummary) => {
+    setError("");
     try {
-      await api.delete(`/api/recipes/${target._id}`);
+      await api.delete(`/api/recipes/${recipe._id}`);
       setRecipes(
-        (current) => current?.filter((item) => item._id !== target._id) ?? null,
+        (current) =>
+          current?.filter((item) => item._id !== recipe._id) ?? null,
       );
+      showToast("Recipe deleted.");
     } catch (caughtError) {
       setError(
         caughtError instanceof Error
           ? caughtError.message
           : "Failed to delete recipe.",
       );
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  const handleSortByTitle = () => {
-    if (!recipes) return;
-    setRecipes(
-      [...recipes].sort((a, b) => {
-        if (a.name < b.name) return -1;
-        if (a.name > b.name) return 1;
-        return 0;
-      }),
-    );
-    setIsSortByTitle(true);
-  };
-
-  const handleSortByDate = () => {
-    if (!recipes) return;
-    setRecipes(sortByDate(recipes));
-    setIsSortByTitle(false);
-  };
+  const hasRecipes = (recipes?.length ?? 0) > 0;
 
   return (
-    <div>
-      <PageHeading>Recipes</PageHeading>
-      {error && <ErrorMessage>{error}</ErrorMessage>}
-      {isLoading && <Spinner />}
-      {!isLoading &&
-        ((recipes && recipes.length > 0 && (
-          <>
-            <div className="mb-4 flex">
-              <div className="grow text-[0.9rem] text-secondary">
-                <Button
-                  variant="link"
-                  className="text-[0.9rem] text-secondary"
-                  onClick={handleSortByTitle}
-                >
-                  Title{" "}
-                  {isSortByTitle && (
-                    <FontAwesomeIcon
-                      icon={faSortDown}
-                      className="ml-2 -translate-y-0.5"
-                    />
-                  )}
-                </Button>
-              </div>
-              <div className="text-right text-[0.9rem] text-secondary">
-                <Button
-                  variant="link"
-                  className="text-[0.9rem] text-secondary"
-                  onClick={handleSortByDate}
-                >
-                  Last Updated{" "}
-                  {!isSortByTitle && (
-                    <FontAwesomeIcon
-                      icon={faSortDown}
-                      className="ml-2 -translate-y-0.5"
-                    />
-                  )}
-                </Button>
-              </div>
-            </div>
-            <ul className="m-0 list-none p-0">
-              {recipes.map((recipe, index) => (
-                <li key={recipe._id} className="mb-4 flex">
-                  <div className="grow pt-2 pr-4">
-                    <Link href={`/recipes/${recipe._id}`}>{recipe.name}</Link>
-                  </div>
-                  <div className="pt-2">
-                    {recipe.updatedAt?.slice(0, 10)}
-                  </div>
-                  <div className="ml-4">
-                    <DeleteButton
-                      index={index}
-                      handler={setPendingDelete}
-                      label={`Delete ${recipe.name}`}
-                    />
-                  </div>
+    <section className="panel recipe-list-panel">
+      <div className="section-label">
+        <h1>Saved recipes</h1>
+        {!isLoading && hasRecipes && (
+          <label className="sort-control">
+            <span>Sort by</span>
+            <select
+              aria-label="Sort recipes"
+              value={sort}
+              onChange={(event) => setSort(event.target.value as SortOrder)}
+            >
+              <option value="date">Last updated</option>
+              <option value="title">Title</option>
+            </select>
+          </label>
+        )}
+      </div>
+
+      {isLoading ? (
+        <div className="list-state" role="status">
+          <span className="loading-dot" aria-hidden="true" />
+          Loading recipes…
+        </div>
+      ) : error && !hasRecipes ? (
+        <div className="list-state">
+          <ErrorMessage>{error}</ErrorMessage>
+          <button type="button" className="primary" onClick={handleRetry}>
+            Try again
+          </button>
+        </div>
+      ) : !hasRecipes ? (
+        <div className="list-state">
+          <FontAwesomeIcon icon={faBookOpen} />
+          <h2>No saved recipes</h2>
+          <p>Save a recipe from the calculator to find it here.</p>
+          <Link href="/" className="primary workspace-action">
+            Open calculator
+            <FontAwesomeIcon icon={faArrowRight} />
+          </Link>
+        </div>
+      ) : (
+        <>
+          {error && <ErrorMessage>{error}</ErrorMessage>}
+          <ul className="recipe-list">
+            {sortedRecipes.map((recipe) => {
+              const updated = formatUpdatedDate(recipe.updatedAt);
+              return (
+                <li key={recipe._id}>
+                  <Link
+                    href={`/recipes/${recipe._id}`}
+                    className="recipe-open"
+                  >
+                    <span className="recipe-mark">
+                      <FontAwesomeIcon icon={faFlask} />
+                    </span>
+                    <span className="recipe-title">{recipe.name}</span>
+                    {updated && (
+                      <time dateTime={recipe.updatedAt}>
+                        Updated {updated}
+                      </time>
+                    )}
+                    <FontAwesomeIcon icon={faChevronRight} />
+                  </Link>
+                  <IconButton
+                    label={`Delete ${recipe.name}`}
+                    testId={`deleteRecipe-${recipe._id}`}
+                    danger
+                    onClick={() => setPendingDelete(recipe)}
+                  >
+                    <FontAwesomeIcon icon={faTrashCan} />
+                  </IconButton>
                 </li>
-              ))}
-            </ul>
-          </>
-        )) || <p className="text-center">You don&apos;t have any saved recipes.</p>)}
-      {pendingDelete !== null && recipes?.[pendingDelete] && (
+              );
+            })}
+          </ul>
+        </>
+      )}
+
+      {pendingDelete && (
         <ConfirmDialog
-          label={`Delete recipe ${recipes[pendingDelete].name}`}
-          onCancel={() => setPendingDelete(null)}
+          open
+          title={`Delete “${pendingDelete.name}”?`}
+          confirmLabel="Delete"
+          onClose={() => setPendingDelete(null)}
+          onConfirm={() => {
+            const target = pendingDelete;
+            setPendingDelete(null);
+            void handleDelete(target);
+          }}
         >
-          <p>
-            Are you sure you want to delete{" "}
-            <strong>&ldquo;{recipes[pendingDelete].name}&rdquo;</strong>?
-          </p>
-          <div className="flex justify-center gap-4">
-            <button
-              type="button"
-              className="text-base"
-              onClick={() => setPendingDelete(null)}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              className="btn-red text-base"
-              onClick={() => {
-                const index = pendingDelete;
-                setPendingDelete(null);
-                void handleConfirmDelete(index);
-              }}
-            >
-              Delete
-            </button>
-          </div>
+          <p>This recipe will be permanently removed from your saved recipes.</p>
         </ConfirmDialog>
       )}
-    </div>
+    </section>
   );
 }

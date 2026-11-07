@@ -1,0 +1,558 @@
+/*
+ * Account and authentication presentation.
+ * Imported after globals.css so these refinements win over the shell defaults.
+ */
+
+/* Account: identity rail plus a single column of account actions. */
+.main-column > main:has(.account-view) { max-width: 1280px; }
+
+.account-loading {
+  display: grid;
+  min-height: 320px;
+  place-items: center;
+}
+
+.account-view .section-label h2,
+.auth-panel h1,
+.auth-drawer h1 {
+  text-transform: capitalize;
+}
+
+.account-view {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.5fr);
+  align-items: start;
+  gap: 24px;
+  max-width: 1040px;
+  margin: 0 auto;
+}
+
+.account-profile {
+  position: sticky;
+  top: 26px;
+}
+
+.account-profile .section-label {
+  margin-bottom: 18px;
+}
+
+.account-profile .section-label > svg {
+  width: 16px;
+  height: 16px;
+  color: var(--color-secondary);
+}
+
+.account-identity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.account-avatar {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  padding: 3px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--gradient);
+}
+
+.account-avatar.empty {
+  padding: 0;
+}
+
+.account-avatar img,
+.user-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--color-ink);
+  object-fit: cover;
+}
+
+.account-avatar svg {
+  width: 22px;
+  height: 22px;
+  color: var(--color-ink);
+}
+
+.account-identity-copy {
+  min-width: 0;
+}
+
+.account-name {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--color-secondary);
+  font-size: 12px;
+  font-weight: 550;
+}
+
+.account-name svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+.account-email {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+  color: var(--color-cream);
+  font-size: 15px;
+}
+
+.account-email svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  color: var(--color-secondary);
+}
+
+.account-recipes {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 8px;
+  color: var(--color-brand-cyan);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.account-recipes:hover {
+  color: var(--color-brand-pink);
+}
+
+.account-recipes svg {
+  width: 12px;
+  height: 12px;
+}
+
+.account-view .signout-button {
+  display: flex;
+  width: 100%;
+  height: auto;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin-top: 27px;
+  padding: 10px 15px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-cream);
+  font-size: 13px;
+  font-weight: 550;
+}
+
+.account-view .signout-button:hover {
+  border-color: var(--color-secondary);
+  background: color-mix(in srgb, var(--color-surface) 80%, var(--color-muted));
+  color: var(--color-cream);
+}
+
+.account-view .signout-button svg {
+  width: 14px;
+  height: 14px;
+}
+
+.account-details {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.account-details > .message {
+  margin: 0;
+}
+
+.account-view .provider-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 4px 0 16px;
+  border-top: 1px solid var(--line);
+}
+
+.account-view .provider-row:first-of-type {
+  border-top: 0;
+}
+
+.account-view .provider-row > img {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.account-view .provider-row > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.account-view .provider-row strong {
+  color: var(--color-cream);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.account-view .provider-row p {
+  margin: 4px 0 0;
+  color: var(--color-secondary);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.account-view .danger-outline,
+.delete-section .danger-outline {
+  height: auto;
+  min-height: 38px;
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border: 1px solid color-mix(in srgb, var(--color-brand-red) 35%, transparent);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-brand-red);
+  font-size: 12px;
+  font-weight: 550;
+}
+
+.account-view .danger-outline:hover,
+.delete-section .danger-outline:hover {
+  border-color: var(--color-brand-red);
+  background: color-mix(in srgb, var(--color-brand-red) 8%, transparent);
+  color: var(--color-brand-red);
+}
+
+.account-view .password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+}
+
+.account-view .password-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--color-secondary);
+  font-size: 12px;
+}
+
+.account-view .password-form input {
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-muted);
+  border-radius: 7px;
+  background: var(--color-ink);
+  color: var(--color-cream);
+  font-size: 14px;
+  text-align: left;
+}
+
+.account-view .password-form input:focus {
+  border-color: var(--color-brand-purple);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-brand-purple) 15%, transparent);
+}
+
+.account-view .password-form .field-note {
+  margin: -7px 0 0;
+  font-size: 11px;
+}
+
+.account-view .password-form .primary {
+  height: auto;
+  align-self: flex-start;
+  padding: 9px 16px;
+  border: 0;
+  font-size: 13px;
+}
+
+.account-view .delete-section {
+  border-color: color-mix(in srgb, var(--color-brand-red) 35%, transparent);
+}
+
+.account-view .delete-section p {
+  margin: 0 0 20px;
+  color: var(--color-secondary);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.account-view .delete-section p:last-child {
+  margin-bottom: 0;
+}
+
+.account-view .delete-section strong {
+  color: var(--color-cream);
+}
+
+/* Authentication: a centered, modal-sized panel. */
+.auth-layout {
+  display: grid;
+  min-height: 550px;
+  padding: 16px 0;
+  place-items: start center;
+}
+
+.auth-panel {
+  width: 100%;
+  max-width: 420px;
+  padding: 30px;
+}
+
+.auth-panel h1 {
+  margin: 0 0 26px;
+  background: none;
+  color: var(--color-cream);
+  -webkit-text-fill-color: currentColor;
+  font-family: inherit;
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.6px;
+  line-height: 1.3;
+}
+
+.auth-panel > p,
+.auth-panel > .message {
+  margin: 0 0 22px;
+  font-size: 13px;
+}
+
+.auth-panel .auth-intro {
+  color: var(--color-secondary);
+  line-height: 1.7;
+}
+
+.auth-drawer {
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  width: min(420px, calc(100vw - 36px));
+  max-height: calc(100dvh - 36px);
+  padding: 30px;
+  border: 1px solid var(--color-muted);
+  border-radius: 14px;
+  background: var(--color-surface);
+  box-shadow: 0 24px 80px #0007;
+  opacity: 1;
+  transform: translate(-50%, -50%);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.auth-drawer.closed {
+  visibility: hidden;
+  opacity: 0;
+  transform: translate(-50%, -48%) scale(0.98);
+}
+
+.auth-drawer.open {
+  visibility: visible;
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.auth-drawer-head {
+  margin-bottom: 18px;
+}
+
+.auth-drawer > .message {
+  margin-bottom: 22px;
+}
+
+.auth-drawer .auth-intro {
+  margin: 0 0 22px;
+  color: var(--color-secondary);
+  font-size: 13px;
+}
+
+.auth-drawer h1 {
+  width: auto;
+  margin: 0 0 26px;
+  background: none;
+  color: var(--color-cream);
+  -webkit-text-fill-color: currentColor;
+  font-family: inherit;
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.6px;
+  line-height: 1.3;
+}
+
+.auth-drawer .auth-form,
+.auth-panel .auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+}
+
+.auth-drawer .auth-form label,
+.auth-panel .auth-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--color-secondary);
+  font-size: 12px;
+}
+
+.auth-drawer .auth-form input,
+.auth-panel .auth-form input {
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-muted);
+  border-radius: 7px;
+  background: var(--color-ink);
+  color: var(--color-cream);
+  font-size: 14px;
+  text-align: left;
+}
+
+.auth-drawer .auth-form input:focus,
+.auth-panel .auth-form input:focus {
+  border-color: var(--color-brand-purple);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-brand-purple) 15%, transparent);
+}
+
+.auth-drawer .auth-form .field-note,
+.auth-panel .auth-form .field-note {
+  margin: -7px 0 0;
+  font-size: 11px;
+}
+
+.auth-drawer .primary,
+.auth-panel .primary {
+  height: auto;
+  min-height: 44px;
+  gap: 9px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.auth-drawer .primary svg,
+.auth-panel .primary svg {
+  width: 14px;
+  height: 14px;
+}
+
+.auth-drawer .text-button,
+.auth-panel .text-button {
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-brand-cyan);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.auth-drawer .text-button:hover,
+.auth-panel .text-button:hover {
+  background: none;
+  color: var(--color-brand-pink);
+}
+
+.auth-drawer .forgot {
+  align-self: flex-end;
+  margin: -10px 0 -4px;
+}
+
+.auth-other {
+  margin: 20px 0 0;
+  color: var(--color-secondary);
+  font-size: 12px;
+  text-align: center;
+}
+
+.auth-other .text-button {
+  font-size: 12px;
+}
+
+.auth-return {
+  display: flex;
+  margin-top: 18px;
+}
+
+.auth-panel .auth-form + .text-button {
+  margin-top: 18px;
+}
+
+@media (max-width: 800px) {
+  .account-view {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .account-profile {
+    position: static;
+  }
+
+  .account-view .signout-button {
+    width: auto;
+  }
+}
+
+@media (max-width: 540px) {
+  .account-view {
+    gap: 16px;
+  }
+
+  .account-view .provider-row {
+    gap: 12px;
+    padding-bottom: 14px;
+  }
+
+  .account-view .provider-row p {
+    max-width: 170px;
+  }
+
+  .account-avatar {
+    width: 56px;
+    height: 56px;
+  }
+
+  .auth-layout {
+    min-height: 0;
+    padding-top: 0;
+  }
+
+  .auth-panel {
+    padding: 22px;
+  }
+
+  .auth-drawer {
+    width: calc(100vw - 24px);
+    max-height: calc(100dvh - 24px);
+    padding: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-backdrop,
+  .auth-drawer {
+    transition: none;
+  }
+}

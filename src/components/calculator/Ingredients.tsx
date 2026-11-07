@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
-import ConfigButton from "@/components/ui/ConfigButton";
+import { faGear, faPlus } from "@fortawesome/free-solid-svg-icons";
+import IconButton from "@/components/ui/IconButton";
 import { formatMeasurement } from "@/lib/helpers";
 import Flavor from "./Flavor";
 import NicConfig from "./NicConfig";
@@ -14,134 +14,67 @@ export default function Ingredients({
 }: {
   calculator: CalculatorController;
 }) {
-  const {
-    nicConfig,
-    nicResults,
-    pgRequired,
-    vgRequired,
-    nicPercentage,
-    pgPercentage,
-    vgPercentage,
-    pgWeight,
-    vgWeight,
-    nicInvalid,
-    pgInvalid,
-    vgInvalid,
-    error,
-    flavors,
-    showNicotine,
-    units,
-    handleAddFlavor,
-  } = calculator;
+  const { nicConfig, flavors, showNicotine, handleAddFlavor } = calculator;
 
   const [nicConfigOpen, setNicConfigOpen] = useState(false);
 
-  const amountCells = (amount: number, weight: number) => {
-    if (units === "weight") {
-      return (
-        <>
-          <div />
-          <div>
-            <span>{`${formatMeasurement(weight)}g`}</span>
-          </div>
-        </>
-      );
-    }
-    if (units === "volume") {
-      return (
-        <>
-          <div />
-          <div>
-            <span>{`${formatMeasurement(amount)}mL`}</span>
-          </div>
-        </>
-      );
-    }
-    return (
-      <>
-        <div>
-          <span>{`${formatMeasurement(amount)}mL`}</span>
-        </div>
-        <div>
-          <span>{`${formatMeasurement(weight)}g`}</span>
-        </div>
-      </>
-    );
-  };
-
-  const rowClass = (invalid: boolean) =>
-    `row grid grid-cols-[4fr_1fr_1fr_1fr] items-center gap-4 justify-items-end [&>div:first-child]:justify-self-start ${
-      invalid ? "text-brand-red" : ""
-    }`;
+  const nicotineSummary = [
+    `${formatMeasurement(nicConfig.strength)}mg/mL`,
+    ...(nicConfig.pg > 0 ? [`${formatMeasurement(nicConfig.pg)}% PG`] : []),
+    ...(nicConfig.vg > 0 ? [`${formatMeasurement(nicConfig.vg)}% VG`] : []),
+  ].join(" · ");
 
   return (
-    <div>
-      <h2 className="mt-[1em] text-[2.25rem]">Ingredients</h2>
-      <hr />
-      {error && (
-        <>
-          <div data-testid="errorMessage" className="error-message">
-            {error}
-          </div>
-          <hr />
-        </>
-      )}
+    <div className="ingredients-stack">
       {showNicotine && (
-        <>
-          <div className={rowClass(nicInvalid)}>
-            <div className="flex items-center">
-              <ConfigButton
+        <section className="panel nicotine-panel">
+          <div className="section-label">
+            <h2>
+              <span className="nicotine-title-full">Undiluted Nicotine</span>
+              <span className="nicotine-title-short">Undiluted Nic.</span>
+            </h2>
+            <div className="nicotine-summary">
+              <span className="quiet">{nicotineSummary}</span>
+              <IconButton
                 testId="nicConfigBtn"
-                toggle={() => setNicConfigOpen((open) => !open)}
-                label="Configure nicotine"
-              />
-              <span>
-                Nic. ({`${nicConfig.strength}mg, ${nicConfig.pg}/${nicConfig.vg}`}
-                )
-              </span>
+                label={`${nicConfigOpen ? "Collapse" : "Expand"} nicotine base`}
+                expanded={nicConfigOpen}
+                controls="nicotine-base-controls"
+                selected={nicConfigOpen}
+                onClick={() => setNicConfigOpen((open) => !open)}
+              >
+                <FontAwesomeIcon icon={faGear} />
+              </IconButton>
             </div>
-            <div>
-              <span>{`${nicPercentage}%`}</span>
-            </div>
-            {amountCells(nicResults.amount, nicResults.weight)}
           </div>
-          {nicConfigOpen && <NicConfig calculator={calculator} />}
-          <hr />
-        </>
+          <NicConfig calculator={calculator} open={nicConfigOpen} />
+        </section>
       )}
-      <div className={rowClass(pgInvalid)}>
-        <div>
-          <span className="base-ingredient">PG</span>
+
+      <section className="panel ingredient-panel">
+        <div className="section-label flavor-heading">
+          <h2>Flavors</h2>
         </div>
-        <div>
-          <span>{`${pgPercentage}%`}</span>
+        <div className="flavor-list">
+          {flavors.map((_flavor, index) => (
+            <Flavor key={index} index={index} calculator={calculator} />
+          ))}
+          {!flavors.length && (
+            <p className="empty-inline">
+              No flavors added. Add a flavor to include it in the calculation.
+            </p>
+          )}
         </div>
-        {amountCells(pgRequired, pgWeight)}
-      </div>
-      <hr />
-      <div className={rowClass(vgInvalid)}>
-        <div>
-          <span className="base-ingredient">VG</span>
-        </div>
-        <div>
-          <span>{`${vgPercentage}%`}</span>
-        </div>
-        {amountCells(vgRequired, vgWeight)}
-      </div>
-      <hr />
-      {flavors.map((_flavor, index) => (
-        <Flavor key={index} index={index} calculator={calculator} />
-      ))}
-      <button
-        data-testid="flavorAddBtn"
-        type="button"
-        className="ml-2 text-base"
-        onClick={handleAddFlavor}
-      >
-        <FontAwesomeIcon icon={faPlus} />
-        <span className="ml-2">Add Flavor</span>
-      </button>
-      <hr />
+        <button
+          data-testid="flavorAddBtn"
+          type="button"
+          className="add-flavor-button"
+          onClick={handleAddFlavor}
+        >
+          <FontAwesomeIcon icon={faPlus} />
+          <span>Add flavor</span>
+        </button>
+      </section>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div>
+    <article className="information panel">
       <h1>Page Not Found</h1>
       <hr />
       <p>The page you&apos;re looking for could not be found.</p>
@@ -15,6 +15,6 @@ export default function NotFound() {
         Please contact <Link href="/help">support</Link> if you&apos;re unable
         to find what you&apos;re looking for.
       </p>
-    </div>
+    </article>
   );
 }

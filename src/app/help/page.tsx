@@ -4,7 +4,7 @@ export const metadata = { title: "Help" };
 
 export default function HelpPage() {
   return (
-    <>
+    <article className="information panel">
       <h1>Help</h1>
       <hr />
       <h2 className="section-heading">Contact Support</h2>
@@ -41,6 +41,6 @@ export default function HelpPage() {
         </a>
         .
       </p>
-    </>
+    </article>
   );
 }

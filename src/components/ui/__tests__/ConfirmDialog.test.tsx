@@ -6,9 +6,8 @@ describe("ConfirmDialog", () => {
   it("exposes an accessible name and closes on Escape", () => {
     const onCancel = vi.fn();
     render(
-      <ConfirmDialog label="Delete account" onCancel={onCancel}>
-        <button type="button">Cancel</button>
-        <button type="button">Delete</button>
+      <ConfirmDialog open title="Delete account" confirmLabel="Delete" onConfirm={vi.fn()} onClose={onCancel}>
+        <p>This cannot be undone.</p>
       </ConfirmDialog>,
     );
 
@@ -27,8 +26,8 @@ describe("ConfirmDialog", () => {
     trigger.focus();
 
     const { unmount } = render(
-      <ConfirmDialog label="Confirm" onCancel={vi.fn()}>
-        <button type="button">Cancel</button>
+      <ConfirmDialog open title="Confirm" confirmLabel="Delete" onConfirm={vi.fn()} onClose={vi.fn()}>
+        <p>Delete this item?</p>
       </ConfirmDialog>,
     );
 
@@ -43,9 +42,8 @@ describe("ConfirmDialog", () => {
 
   it("keeps Tab focus inside the dialog", () => {
     render(
-      <ConfirmDialog label="Confirm" onCancel={vi.fn()}>
-        <button type="button">Cancel</button>
-        <button type="button">Delete</button>
+      <ConfirmDialog open title="Confirm" confirmLabel="Delete" onConfirm={vi.fn()} onClose={vi.fn()}>
+        <p>Delete this item?</p>
       </ConfirmDialog>,
     );
 
@@ -59,5 +57,22 @@ describe("ConfirmDialog", () => {
     cancel.focus();
     fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
     expect(document.activeElement).toBe(remove);
+  });
+
+  it("confirms only through the explicit action and keeps a closed dialog inert", () => {
+    const onConfirm = vi.fn();
+    const { rerender } = render(
+      <ConfirmDialog open title="Confirm" confirmLabel="Delete" onConfirm={onConfirm} onClose={vi.fn()}>
+        <p>Delete this item?</p>
+      </ConfirmDialog>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+    rerender(
+      <ConfirmDialog open={false} title="Confirm" confirmLabel="Delete" onConfirm={onConfirm} onClose={vi.fn()}>
+        <p>Delete this item?</p>
+      </ConfirmDialog>,
+    );
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 });
