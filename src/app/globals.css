@@ -1420,20 +1420,6 @@ main:focus {
   margin-left: auto;
 }
 
-.auth-menu h2,
-.auth-drawer h2 {
-  width: auto;
-  margin: 0 0 26px;
-  background: none;
-  color: var(--color-cream);
-  -webkit-text-fill-color: currentColor;
-  font-family: inherit;
-  font-size: 24px;
-  font-weight: 650;
-  letter-spacing: -0.6px;
-  line-height: 1.3;
-}
-
 .provider-buttons {
   display: flex;
   flex-direction: column;
@@ -1488,40 +1474,6 @@ main:focus {
   content: "";
 }
 
-.auth-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.auth-secondary {
-  width: 100%;
-  height: auto;
-  min-height: 44px;
-  gap: 9px;
-  padding: 10px 15px;
-  border: 1px solid var(--color-muted);
-  border-radius: 8px;
-  background: transparent;
-  color: var(--color-cream);
-  font-size: 13px;
-  font-weight: 550;
-  line-height: 1.2;
-}
-
-.auth-secondary:hover {
-  border-color: var(--color-secondary);
-  background: color-mix(in srgb, var(--color-surface) 80%, var(--color-muted));
-  color: var(--color-cream);
-}
-
-.auth-drawer .input-border {
-  display: block;
-  padding: 0;
-  border-radius: 0;
-  background: none;
-}
-
 .auth-drawer input[type="email"],
 .auth-drawer input[type="password"] {
   width: 100%;
@@ -1539,54 +1491,6 @@ main:focus {
 .auth-drawer input:focus {
   border-color: var(--color-brand-purple);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-brand-purple) 15%, transparent);
-}
-
-.auth-drawer .btn-green,
-.auth-drawer .btn-red {
-  height: auto;
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 650;
-}
-
-.auth-drawer .btn-green {
-  border: 1px solid transparent;
-  background: var(--gradient);
-  color: var(--color-ink);
-}
-
-.auth-drawer .btn-red {
-  border: 1px solid var(--line);
-  background: transparent;
-  color: var(--color-secondary);
-}
-
-.auth-drawer .btn-link {
-  height: auto;
-  padding: 0;
-  background: none;
-  color: var(--color-brand-cyan);
-}
-
-.auth-drawer .error-message,
-.auth-drawer .success-message {
-  padding: 12px 15px;
-  border: 1px solid;
-  border-radius: 7px;
-  font-size: 13px;
-}
-
-.auth-drawer .error-message {
-  border-color: color-mix(in srgb, var(--color-brand-red) 35%, transparent);
-  background: color-mix(in srgb, var(--color-brand-red) 7%, var(--color-ink));
-  color: var(--color-brand-red);
-}
-
-.auth-drawer .success-message {
-  border-color: color-mix(in srgb, var(--color-brand-green) 25%, transparent);
-  background: color-mix(in srgb, var(--color-brand-green) 5%, var(--color-ink));
-  color: var(--color-brand-green);
 }
 
 /* Keyboard focus: a consistent cyan ring instead of the legacy gradient. */
@@ -1613,11 +1517,6 @@ main:focus {
 
 .icon-button:focus-visible,
 .step:focus-visible {
-  background: transparent;
-}
-
-.auth-secondary:focus-visible,
-.auth-drawer .btn-red:focus-visible {
   background: transparent;
 }
 
